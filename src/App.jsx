@@ -33,7 +33,7 @@ export default function App(){
  const radiusStep=Math.max(0.1,(maxRadiusA0-0.1)/300);
  const mChoices=Array.from({length:orbital.l*2+1},(_,i)=>i-orbital.l);
  return <main className="app-shell">
-  <header className="topbar"><div className="brand-mark"><Atom size={20}/></div><div className="brand-name">Quantum<span>Orbital</span><small>QUANTUM VISUALIZATION LAB</small></div><div className="topbar-center"><span className="status-pulse"/> ATOMIC EXPLORER <span className="topbar-slash">/</span> 118 ELEMENTS</div><button className="help-button"><CircleHelp size={15}/> Physics guide</button></header>
+  <header className="topbar"><div className="brand-mark"><img src="/quantum-orbital-mark.svg" alt="" aria-hidden="true"/></div><div className="brand-name">Quantum<span>Orbital</span><small>QUANTUM VISUALIZATION LAB</small></div><div className="topbar-center"><span className="status-pulse"/> ATOMIC EXPLORER <span className="topbar-slash">/</span> 118 ELEMENTS</div><button className="help-button"><CircleHelp size={15}/> Physics guide</button></header>
   <section className="page-title"><div><div className="eyebrow title-eyebrow"><Orbit size={13}/> ATOMIC WAVEFUNCTION EXPLORER</div><h1>{selected.name} <span>{selected.symbol} · Z {selected.z}</span></h1><p>Explore atomic structure, electron configuration and an interactive orbital probability model.</p></div><div className="title-badge"><Activity size={15}/><span>SELECTED ELEMENT<br/><b>{selected.category.toUpperCase()}</b></span></div></section>
   <PeriodicTable elements={ELEMENT_DATA} selected={selected} onSelect={changeElement} query={query} setQuery={setQuery}/>
   <div className="workspace">
