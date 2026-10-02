@@ -6,8 +6,8 @@ import ProbabilityPanel from './components/ProbabilityPanel.jsx';
 import { ELEMENT_DATA, ELEMENT_DATA_SOURCES } from './physics/elements.js';
 import './styles/features.css';
 
-const LETTERS=['s','p','d','f'];
 const LMAX={s:0,p:1,d:2,f:3};
+const radiusLimitForOrbital=n=>Math.max(6,6*n*n);
 
 function orbitalFromElement(element){
  const token=element.configuration.trim().split(' ').filter(Boolean).at(-1)||'1s1';
@@ -25,10 +25,12 @@ export default function App(){
  const [orbital,setOrbital]=useState(initial);
  const [m,setM]=useState(0);
  const [orbitalChoice,setOrbitalChoice]=useState(initial.label);
- const changeElement=e=>{setSelected(e);const o=orbitalFromElement(e);setOrbital(o);setOrbitalChoice(o.label);setM(0)};
- const chooseOrbital=token=>{const match=token.match(/(\d+)([spdf])/);if(!match)return;const o={n:Number(match[1]),l:LMAX[match[2]],m:0,label:match[0]};setOrbital(o);setOrbitalChoice(o.label);setM(0)};
+ const changeElement=e=>{setSelected(e);const o=orbitalFromElement(e);setOrbital(o);setOrbitalChoice(o.label);setM(0);setRadiusA0(radius=>Math.min(radius,radiusLimitForOrbital(o.n)))};
+ const chooseOrbital=token=>{const match=token.match(/(\d+)([spdf])/);if(!match)return;const o={n:Number(match[1]),l:LMAX[match[2]],m:0,label:match[0]};setOrbital(o);setOrbitalChoice(o.label);setM(0);setRadiusA0(radius=>Math.min(radius,radiusLimitForOrbital(o.n)))};
  const configTokens=selected.configuration.split(' ').filter(x=>/\d+[spdf]\d+/.test(x));
  const currentOrbital=orbital.label;
+ const maxRadiusA0=radiusLimitForOrbital(orbital.n);
+ const radiusStep=Math.max(0.1,(maxRadiusA0-0.1)/300);
  const mChoices=Array.from({length:orbital.l*2+1},(_,i)=>i-orbital.l);
  return <main className="app-shell">
   <header className="topbar"><div className="brand-mark"><Atom size={20}/></div><div className="brand-name">Quantum<span>Orbital</span><small>QUANTUM VISUALIZATION LAB</small></div><div className="topbar-center"><span className="status-pulse"/> ATOMIC EXPLORER <span className="topbar-slash">/</span> 118 ELEMENTS</div><button className="help-button"><CircleHelp size={15}/> Physics guide</button></header>
@@ -45,8 +47,8 @@ export default function App(){
       <div className="m-buttons" aria-label="Select magnetic quantum number">{mChoices.map(v=><button key={v} className={m===v?'active':''} aria-pressed={m===v} onClick={()=>{setM(v);setOrbital(o=>({...o,m:v}))}}>{v}</button>)}</div>
       <div className="control-divider"/>
       <label className="range-label"><span>Probability radius</span><strong>{radiusA0.toFixed(1)} a₀</strong></label>
-      <input type="range" min=".1" max="6" step=".1" value={radiusA0} onChange={e=>setRadiusA0(Number(e.target.value))}/>
-      <div className="range-ends"><span>.1 a₀</span><span>6 a₀</span></div>
+      <input type="range" min=".1" max={maxRadiusA0} step={radiusStep} value={radiusA0} onChange={e=>setRadiusA0(Number(e.target.value))}/>
+      <div className="range-ends"><span>.1 a₀</span><span>{maxRadiusA0.toFixed(0)} a₀</span></div>
       <div className="control-divider"/>
       <label className="range-label"><span>Cloud samples</span><strong>{(pointCount/1000).toFixed(0)}k</strong></label>
       <input type="range" min="4000" max="32000" step="4000" value={pointCount} onChange={e=>setPointCount(Number(e.target.value))}/>

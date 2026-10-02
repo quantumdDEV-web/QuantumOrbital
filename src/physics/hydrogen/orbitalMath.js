@@ -83,7 +83,7 @@ export function probabilityInsideHydrogenicRadius(n, l, radiusA0, table = create
 
 export function hydrogenicRadialCurve(n, l, points = 180) {
   const table = createRadialCdf(n, l);
-  const maxRadiusA0 = Math.min(table.maxRadiusA0, Math.max(8, n * n * 3));
+  const maxRadiusA0 = Math.min(table.maxRadiusA0, Math.max(8, n * n * 6));
   return Array.from({ length: points + 1 }, (_, i) => {
     const radiusA0 = maxRadiusA0 * i / points;
     return {
