@@ -21,6 +21,7 @@ export default function App(){
  const [query,setQuery]=useState('');
  const [pointCount,setPointCount]=useState(16000);
  const [radiusA0,setRadiusA0]=useState(1);
+ const [sceneMode,setSceneMode]=useState('probability');
  const initial=useMemo(()=>orbitalFromElement(selected),[selected]);
  const [orbital,setOrbital]=useState(initial);
  const [m,setM]=useState(0);
@@ -55,7 +56,7 @@ export default function App(){
       <div className="range-ends"><span>4k</span><span>32k</span></div>
     </section>
    </aside>
-   <section className="center-column"><div className="scene-toolbar"><span><i/> 3D ORBITAL PROBABILITY DENSITY</span><span>DRAG TO ROTATE <b>·</b> SCROLL TO ZOOM</span></div><AtomScene pointCount={pointCount} n={orbital.n} l={orbital.l} m={m} radiusA0={radiusA0}/><div className="scene-metrics"><div><small>ORBITAL</small><strong>{currentOrbital}{orbital.l>0?' · m = '+m:''}</strong></div><div><small>ELECTRON SHELLS</small><strong>{shellText(selected.shells)}</strong></div><div><small>BOHR RADIUS</small><strong>5.292 × 10⁻¹¹ m</strong></div></div></section>
+   <section className="center-column"><div className="scene-toolbar"><span><i/> 3D ORBITAL VISUALIZATION</span><span>DRAG TO ROTATE <b>·</b> SCROLL TO ZOOM</span></div><AtomScene pointCount={pointCount} n={orbital.n} l={orbital.l} m={m} radiusA0={radiusA0} displayMode={sceneMode} setDisplayMode={setSceneMode}/><div className="scene-metrics"><div><small>ORBITAL</small><strong>{currentOrbital}{orbital.l>0?' · m = '+m:''}</strong></div><div><small>ELECTRON SHELLS</small><strong>{shellText(selected.shells)}</strong></div><div><small>BOHR RADIUS</small><strong>5.292 × 10⁻¹¹ m</strong></div></div></section>
    <aside className="right-column">
     <section className="panel probability-panel"><div className="panel-heading"><span className="icon-box green"><Atom size={15}/></span><div><div className="eyebrow">ELEMENT PROFILE</div><h2>{selected.name}</h2></div></div>
       <div className="stats-grid"><div><small>ATOMIC NUMBER</small><strong>{selected.z}</strong></div><div><small>ATOMIC MASS</small><strong>{selected.mass}</strong><em>u</em></div><div><small>ELECTRONS</small><strong>{selected.electrons}</strong></div><div><small>IONIZATION</small><strong>{selected.ionizationEnergy??'N/A'}</strong><em>eV</em></div></div>
