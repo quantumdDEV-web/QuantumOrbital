@@ -1,29 +1,21 @@
+import { associatedLegendre, createRadialCdf, radiusAtCdf } from '../physics/hydrogen/orbitalMath.js';
+
 function rng(seed){let s=seed>>>0;return()=>{s=(1664525*s+1013904223)>>>0;return s/4294967296}}
-function gaussian(random){let u=0,v=0;while(!u)u=random();while(!v)v=random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
-function angularFactor(l,m,x,y,z,r){
- if(!r)return 1;
- const nx=x/r,ny=y/r,nz=z/r;
- if(l===0)return 1;
- if(l===1)return m===0?nz:Math.sqrt(nx*nx+ny*ny);
- if(l===2){if(m===0)return Math.abs(3*nz*nz-1);if(Math.abs(m)===1)return Math.abs(nz*Math.sqrt(nx*nx+ny*ny));return Math.abs(nx*nx-ny*ny)}
- return Math.abs(nz*(5*nz*nz-3));
-}
+const radialTables = new Map();
+const angularMaxima = new Map();
+function radialTable(n,l){const key=`${n}:${l}`;if(!radialTables.has(key))radialTables.set(key,createRadialCdf(n,l));return radialTables.get(key)}
+function angularMaximum(l,m){const key=`${l}:${Math.abs(m)}`;if(!angularMaxima.has(key)){let max=0;for(let i=0;i<=2048;i++){const value=associatedLegendre(l,m,-1+2*i/2048);max=Math.max(max,value*value)}angularMaxima.set(key,max||1)}return angularMaxima.get(key)}
 export function sampleOrbitalPositions(count=16000,n=1,l=0,m=0,seed=271828){
- const random=rng(seed+n*31+l*97+m*193), positions=new Float32Array(count*3);
- const scale=Math.max(0.55,n*n*0.72);
+ const safeN=Math.max(1,Math.floor(n)),safeL=Math.min(Math.max(0,Math.floor(l)),safeN-1),safeM=Math.max(-safeL,Math.min(safeL,Math.floor(m)));
+ const random=rng(seed+safeN*31+safeL*97+safeM*193), positions=new Float32Array(count*3);
+ const radial=radialTable(safeN,safeL),maxAngular=angularMaximum(safeL,safeM);
  for(let i=0;i<count;i++){
-  let x,y,z,r,weight,tries=0;
-  do{
-   x=gaussian(random);y=gaussian(random);z=gaussian(random);r=Math.sqrt(x*x+y*y+z*z);
-   const radial=Math.exp(-r/(scale*1.35))*Math.pow(r/(scale+0.001),Math.max(0,l));
-   const angular=angularFactor(l,m,x,y,z,r);
-   weight=Math.min(1,radial*angular);
-   tries++;
-  }while(random()>Math.max(0.08,weight) && tries<20);
-  const jitter=0.55+random()*0.9;
-  positions[i*3]=x*scale*jitter;
-  positions[i*3+1]=y*scale*jitter;
-  positions[i*3+2]=z*scale*jitter;
+  let cosTheta,phi;
+  do{cosTheta=2*random()-1;phi=2*Math.PI*random();const value=associatedLegendre(safeL,safeM,cosTheta);if(random()<=value*value/maxAngular)break}while(true);
+  const sinTheta=Math.sqrt(1-cosTheta*cosTheta),radius=radiusAtCdf(radial,random());
+  positions[i*3]=radius*sinTheta*Math.cos(phi);
+  positions[i*3+1]=radius*cosTheta;
+  positions[i*3+2]=radius*sinTheta*Math.sin(phi);
  }
  return positions;
 }

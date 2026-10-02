@@ -1,0 +1,7 @@
+.periodic-head h2 small{margin-left:7px;color:#70818e;font:8px 'DM Mono';letter-spacing:.5px}
+.element-placeholder{align-self:stretch;display:grid;place-content:center;text-align:center;border:1px dashed #293844;border-radius:5px;background:#0d151c;color:#9bb2bf;font:9px 'DM Mono';line-height:1.45}
+.element-placeholder span{font:7px 'DM Sans';color:#6e7e8a}
+.fblock button.dim{opacity:.18}
+.data-sources{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px;padding-top:10px;border-top:1px solid #202b35}
+.data-sources a{font:8px 'DM Mono';color:#77b8cc;text-decoration:none}
+.data-sources a:hover{text-decoration:underline;color:#b4e7f1}

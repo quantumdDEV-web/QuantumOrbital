@@ -3,7 +3,8 @@ import { Activity, Atom, CircleHelp, Orbit, Search, Zap } from 'lucide-react';
 import AtomScene from './components/AtomScene.jsx';
 import PeriodicTable from './components/PeriodicTable.jsx';
 import ProbabilityPanel from './components/ProbabilityPanel.jsx';
-import { ELEMENT_DATA } from './physics/elements.js';
+import { ELEMENT_DATA, ELEMENT_DATA_SOURCES } from './physics/elements.js';
+import './styles/features.css';
 
 const LETTERS=['s','p','d','f'];
 const LMAX={s:0,p:1,d:2,f:3};
@@ -26,7 +27,7 @@ export default function App(){
  const [orbitalChoice,setOrbitalChoice]=useState(initial.label);
  const changeElement=e=>{setSelected(e);const o=orbitalFromElement(e);setOrbital(o);setOrbitalChoice(o.label);setM(0)};
  const chooseOrbital=token=>{const match=token.match(/(\d+)([spdf])/);if(!match)return;const o={n:Number(match[1]),l:LMAX[match[2]],m:0,label:match[0]};setOrbital(o);setOrbitalChoice(o.label);setM(0)};
- const configTokens=selected.configuration.split(' ').filter(x=>/\\d+[spdf]\\d+/.test(x));
+ const configTokens=selected.configuration.split(' ').filter(x=>/\d+[spdf]\d+/.test(x));
  const currentOrbital=orbital.label;
  const mChoices=Array.from({length:orbital.l*2+1},(_,i)=>i-orbital.l);
  return <main className="app-shell">
@@ -38,10 +39,10 @@ export default function App(){
     <section className="panel controls-panel"><div className="panel-heading"><span className="icon-box"><Zap size={16}/></span><div><div className="eyebrow">ORBITAL STATE</div><h2>Electron configuration</h2></div></div>
       <div className="element-mini"><strong>{selected.symbol}</strong><span>{selected.name}</span><b>Z {selected.z}</b></div>
       <div className="configuration">{selected.configuration}</div>
-      <div className="orbital-list">{configTokens.map(token=><button key={token} className={orbitalChoice===token.replace(/\\d+$/,'')?'active':''} onClick={()=>chooseOrbital(token)}>{token}</button>)}</div>
+      <div className="orbital-list" aria-label="Select an occupied orbital">{configTokens.map(token=><button key={token} className={orbitalChoice===token.replace(/\d+$/,'')?'active':''} onClick={()=>chooseOrbital(token)}>{token}</button>)}</div>
       <div className="control-divider"/>
       <label className="range-label"><span>Magnetic quantum number m</span><strong>{m}</strong></label>
-      <div className="m-buttons">{mChoices.map(v=><button key={v} className={m===v?'active':''} onClick={()=>{setM(v);setOrbital(o=>({...o,m:v}))}}>{v}</button>)}</div>
+      <div className="m-buttons" aria-label="Select magnetic quantum number">{mChoices.map(v=><button key={v} className={m===v?'active':''} aria-pressed={m===v} onClick={()=>{setM(v);setOrbital(o=>({...o,m:v}))}}>{v}</button>)}</div>
       <div className="control-divider"/>
       <label className="range-label"><span>Probability radius</span><strong>{radiusA0.toFixed(1)} a₀</strong></label>
       <input type="range" min=".1" max="6" step=".1" value={radiusA0} onChange={e=>setRadiusA0(Number(e.target.value))}/>
@@ -58,8 +59,8 @@ export default function App(){
       <div className="stats-grid"><div><small>ATOMIC NUMBER</small><strong>{selected.z}</strong></div><div><small>ATOMIC MASS</small><strong>{selected.mass}</strong><em>u</em></div><div><small>ELECTRONS</small><strong>{selected.electrons}</strong></div><div><small>IONIZATION</small><strong>{selected.ionizationEnergy??'N/A'}</strong><em>eV</em></div></div>
       <div className="profile-row"><span>Category</span><b>{selected.category}</b></div><div className="profile-row"><span>Period / group</span><b>{selected.period} / {selected.group??'f block'}</b></div><div className="profile-row"><span>Valence shell</span><b>{Math.max(...Object.keys(selected.shells).map(Number))} · {selected.shells[Math.max(...Object.keys(selected.shells).map(Number))]} e⁻</b></div>
     </section>
-    <ProbabilityPanel radiusA0={radiusA0} probability={Math.min(1,radiusA0/6)}/>
-    <section className="panel info-panel"><div className="panel-heading"><span className="icon-box"><Search size={15}/></span><div><div className="eyebrow">MODEL NOTE</div><h2>What you are seeing</h2></div></div><p>The cloud represents sampled probability density for the selected hydrogenic orbital shape. For multi electron atoms it is a visualization model of the selected subshell, not a full many body wavefunction.</p><p className="info-note">Element properties are based on NIST periodic table data. Atomic configurations can differ in detail from simplified textbook Aufbau filling for some elements.</p></section>
+    <ProbabilityPanel radiusA0={radiusA0} n={orbital.n} l={orbital.l}/>
+    <section className="panel info-panel"><div className="panel-heading"><span className="icon-box"><Search size={15}/></span><div><div className="eyebrow">MODEL NOTE</div><h2>What you are seeing</h2></div></div><p>The cloud samples a hydrogenic orbital for the selected subshell. For atoms with multiple electrons it does not model screening or electron-electron interactions.</p><p className="info-note">Atomic weights and ground-state ionization energies follow NIST's periodic table where available. Electron configurations include NIST listed ground-state exceptions; remaining configurations use Aufbau filling.</p><div className="data-sources"><a href={ELEMENT_DATA_SOURCES.periodicTable} target="_blank" rel="noreferrer">NIST periodic table</a><a href={ELEMENT_DATA_SOURCES.ionizationEnergies} target="_blank" rel="noreferrer">NIST ionization data</a><a href={ELEMENT_DATA_SOURCES.atomicWeights} target="_blank" rel="noreferrer">NIST atomic weights</a></div></section>
    </aside>
   </div>
   <footer><span>QuantumOrbital <i>·</i> {selected.name} atomic explorer</span><span>PHYSICS ENGINE <b>{currentOrbital} / HYDROGENIC MODEL</b></span></footer>
