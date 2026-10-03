@@ -58,10 +58,10 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused =
 
   return <>
     <points geometry={geometry} renderOrder={1}>
-      <pointsMaterial color="#54d9ff" size={0.085} transparent opacity={0.2} sizeAttenuation depthWrite={false}/>
+      <pointsMaterial color="#54d9ff" size={2.6} transparent opacity={0.2} sizeAttenuation={false} depthWrite={false}/>
     </points>
     <points geometry={geometry} renderOrder={2}>
-      <pointsMaterial vertexColors size={0.035} transparent opacity={0.82} sizeAttenuation depthWrite={false}/>
+      <pointsMaterial vertexColors size={1.35} transparent opacity={0.82} sizeAttenuation={false} depthWrite={false}/>
     </points>
   </>;
 }
