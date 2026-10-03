@@ -49,12 +49,12 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused =
     const colorAttribute = geometry.getAttribute('color');
     const animatedColors = colorAttribute.array;
     animationTime.current += delta;
-    const time = animationTime.current;
-    const amplitude = 0.045 * n * n;
+    const time = animationTime.current * 2.5;
+    const amplitude = 0.065 * n * n;
 
     // Refresh a small batch each frame to create the flowing particle motion
     // used by the reference simulator without rebuilding the whole cloud.
-    const resampleCount = Math.min(pointCount, Math.max(1, Math.ceil(pointCount * 0.05)));
+    const resampleCount = Math.min(pointCount, Math.max(1, Math.ceil(pointCount * 0.1)));
     const samples = sampleOrbitalPositions(resampleCount, n, l, m, 271828 + sampleFrame.current++);
     for (let sample = 0; sample < resampleCount; sample += 1) {
       const pointIndex = (sampleCursor.current + sample) % pointCount;

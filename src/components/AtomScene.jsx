@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { AxesHelper } from 'three';
 import { OrbitControls as ThreeOrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Camera, Pause, Play, RotateCcw } from 'lucide-react';
 import OrbitalCloud from './OrbitalCloud.jsx';
@@ -62,7 +63,33 @@ function CameraControls({ n, view }) {
   return <primitive object={controls}/>;
 }
 
-export default function AtomScene({ pointCount, n, l, m, radiusA0, element }) {
+function ReferenceFrame() {
+  const { camera, size } = useThree();
+  const axes = useMemo(() => new AxesHelper(0.72), []);
+
+  useEffect(() => {
+    // Keep a small world-oriented XYZ frame in the camera's lower-left corner.
+    axes.material.depthTest = false;
+    axes.renderOrder = 10;
+    camera.add(axes);
+    return () => {
+      camera.remove(axes);
+      axes.geometry.dispose();
+      axes.material.dispose();
+    };
+  }, [axes, camera]);
+
+  useFrame(() => {
+    const depth = 5;
+    const viewHeight = 2 * depth * Math.tan((camera.fov * Math.PI) / 360);
+    axes.position.set(-viewHeight * size.width / size.height / 2 + 0.35, -viewHeight / 2 + 0.35, -depth);
+    axes.quaternion.copy(camera.quaternion).invert();
+  });
+
+  return null;
+}
+
+export default function AtomScene({ pointCount, n, l, m, element }) {
   const [paused, setPaused] = useState(false);
   const [view, setView] = useState({ axis: '', request: 0 });
   const [canvasElement, setCanvasElement] = useState(null);
@@ -87,8 +114,7 @@ export default function AtomScene({ pointCount, n, l, m, radiusA0, element }) {
       <Suspense fallback={null}>
         <OrbitalCloud pointCount={pointCount} n={n} l={l} m={m} paused={paused}/>
         <Nucleus/>
-        {radiusA0 > 0 && <mesh scale={radiusA0}><sphereGeometry args={[1, 36, 36]}/><meshBasicMaterial color="#b7d98e" transparent opacity={0.055} wireframe depthWrite={false}/></mesh>}
-        <axesHelper args={[3]}/>
+        <ReferenceFrame/>
       </Suspense>
       <CameraControls n={n} view={view}/>
     </Canvas>
