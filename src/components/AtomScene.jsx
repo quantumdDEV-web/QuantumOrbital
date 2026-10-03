@@ -14,13 +14,13 @@ function CameraControls({ n, view }) {
   useEffect(() => () => controls.dispose(), [controls]);
   useEffect(() => {
     camera.position.set(14 * n * n, 10.5 * n * n, 16 * n * n);
-    camera.far = 100 * n * n;
+    camera.far = 400 * n * n;
     camera.updateProjectionMatrix();
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.minDistance = 3;
-    controls.maxDistance = 60 * n * n;
+    controls.maxDistance = 300 * n * n;
     controls.update();
   }, [camera, controls, n]);
 
