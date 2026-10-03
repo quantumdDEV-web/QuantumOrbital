@@ -46,6 +46,6 @@ export default function AtomScene({ pointCount, n, l, m, radiusA0, element }) {
     <div className="scene-visual-legend"><span className="legend-dot probability-dot"/>Probability orbital <span className="legend-dot energy-dot"/>Energy color</div>
     <div className="scene-caption">{element?.symbol || 'Atom'} first ionization energy: {energyLabel} <span className="caption-separator">·</span> orbital {orbitalLabel} <span className="caption-separator">·</span> radius in a₀</div>
     <div className="scene-energy-scale" aria-label="First ionization energy scale, zero to twenty five electron volts"><span>0 eV</span><i/><span>25 eV</span></div>
-    <div className="scene-energy-note">Energy color shows one value for this element. The blue halo shows orbital probability.</div>
+    <div className="scene-energy-note">Electron samples move continuously. The blue halo shows probability; color shows this element's ionization energy.</div>
   </div>;
 }
