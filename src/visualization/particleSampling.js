@@ -11,7 +11,13 @@ export function sampleOrbitalPositions(count=16000,n=1,l=0,m=0,seed=271828){
  const radial=radialTable(safeN,safeL),maxAngular=angularMaximum(safeL,safeM);
  for(let i=0;i<count;i++){
   let cosTheta,phi;
-  do{cosTheta=2*random()-1;phi=2*Math.PI*random();const value=associatedLegendre(safeL,safeM,cosTheta);if(random()<=value*value/maxAngular)break}while(true);
+  do{
+   cosTheta=2*random()-1;phi=2*Math.PI*random();
+   let value=associatedLegendre(safeL,safeM,cosTheta);
+   if(safeM>0)value*=Math.cos(safeM*phi);
+   else if(safeM<0)value*=Math.sin(Math.abs(safeM)*phi);
+   if(random()<=value*value/maxAngular)break;
+  }while(true);
   const sinTheta=Math.sqrt(1-cosTheta*cosTheta),radius=radiusAtCdf(radial,random());
   positions[i*3]=radius*sinTheta*Math.cos(phi);
   positions[i*3+1]=radius*cosTheta;

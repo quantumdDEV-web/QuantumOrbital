@@ -17,6 +17,21 @@ export function hydrogenicRadialDensity(n, l, radiusA0) {
   return radiusA0 * radiusA0 * radial * radial;
 }
 
+export function hydrogenicWavefunctionSign(n, l, m, x, y, z) {
+  const radius = Math.hypot(x, y, z);
+  if (radius === 0) return 1;
+
+  const rho = 2 * radius / n;
+  const radial = (rho ** l) * Math.exp(-radius / n)
+    * generalizedLaguerre(n - l - 1, 2 * l + 1, rho);
+  const order = Math.abs(m);
+  let angular = associatedLegendre(l, order, y / radius);
+  const phi = Math.atan2(z, x);
+  if (m > 0) angular *= Math.cos(order * phi);
+  else if (m < 0) angular *= Math.sin(order * phi);
+  return radial * angular;
+}
+
 export function associatedLegendre(l, m, x) {
   const order = Math.abs(m);
   let pmm = 1;

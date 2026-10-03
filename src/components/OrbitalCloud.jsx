@@ -1,29 +1,34 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { BufferAttribute, BufferGeometry, Color } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useOrbital } from '../hooks/useOrbital.js';
+import { hydrogenicWavefunctionSign } from '../physics/hydrogen/orbitalMath.js';
+import { sampleOrbitalPositions } from '../visualization/particleSampling.js';
 
-const MAX_IONIZATION_ENERGY_EV = 25;
+const POSITIVE_PHASE = new Color('#2e64e1');
+const NEGATIVE_PHASE = new Color('#ff6666');
 
-export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, ionizationEnergy = null }) {
+function writePhaseColor(colors, pointIndex, x, y, z, n, l, m) {
+  const offset = pointIndex * 3;
+  const color = hydrogenicWavefunctionSign(n, l, m, x, y, z) >= 0 ? POSITIVE_PHASE : NEGATIVE_PHASE;
+  colors[offset] = color.r;
+  colors[offset + 1] = color.g;
+  colors[offset + 2] = color.b;
+}
+
+export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused = false }) {
   const positions = useOrbital(pointCount, n, l, m);
   const basePositions = useMemo(() => positions.slice(), [positions]);
+  const animationTime = useRef(0);
+  const sampleFrame = useRef(0);
+  const sampleCursor = useRef(0);
   const colors = useMemo(() => {
     const result = new Float32Array(positions.length);
-    const color = new Color();
-    if (Number.isFinite(ionizationEnergy)) {
-      const amount = Math.min(1, Math.max(0, ionizationEnergy / MAX_IONIZATION_ENERGY_EV));
-      color.setHSL(0.66 - 0.64 * amount, 0.82, 0.54);
-    } else {
-      color.set('#697681');
-    }
     for (let i = 0; i < positions.length; i += 3) {
-      result[i] = color.r;
-      result[i + 1] = color.g;
-      result[i + 2] = color.b;
+      writePhaseColor(result, i / 3, positions[i], positions[i + 1], positions[i + 2], n, l, m);
     }
     return result;
-  }, [positions, ionizationEnergy]);
+  }, [positions, n, l, m]);
   const geometry = useMemo(() => {
     const next = new BufferGeometry();
     next.setAttribute('position', new BufferAttribute(positions, 3));
@@ -31,11 +36,37 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, ionizati
     return next;
   }, [positions, colors]);
 
-  useFrame(({ clock }) => {
+  useEffect(() => {
+    animationTime.current = 0;
+    sampleFrame.current = 0;
+    sampleCursor.current = 0;
+  }, [positions]);
+
+  useFrame((_, delta) => {
+    if (paused) return;
     const attribute = geometry.getAttribute('position');
     const animatedPositions = attribute.array;
-    const time = clock.elapsedTime;
+    const colorAttribute = geometry.getAttribute('color');
+    const animatedColors = colorAttribute.array;
+    animationTime.current += delta;
+    const time = animationTime.current;
     const amplitude = 0.045 * n * n;
+
+    // Refresh a small batch each frame to create the flowing particle motion
+    // used by the reference simulator without rebuilding the whole cloud.
+    const resampleCount = Math.min(pointCount, Math.max(1, Math.ceil(pointCount * 0.05)));
+    const samples = sampleOrbitalPositions(resampleCount, n, l, m, 271828 + sampleFrame.current++);
+    for (let sample = 0; sample < resampleCount; sample += 1) {
+      const pointIndex = (sampleCursor.current + sample) % pointCount;
+      const offset = pointIndex * 3;
+      const source = sample * 3;
+      basePositions[offset] = samples[source];
+      basePositions[offset + 1] = samples[source + 1];
+      basePositions[offset + 2] = samples[source + 2];
+      writePhaseColor(animatedColors, pointIndex, samples[source], samples[source + 1], samples[source + 2], n, l, m);
+    }
+    sampleCursor.current = (sampleCursor.current + resampleCount) % pointCount;
+    colorAttribute.needsUpdate = true;
 
     for (let i = 0; i < animatedPositions.length; i += 3) {
       const particle = i / 3;
