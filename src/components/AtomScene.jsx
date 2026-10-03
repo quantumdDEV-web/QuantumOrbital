@@ -126,6 +126,6 @@ export default function AtomScene({ pointCount, n, l, m, element }) {
       <button type="button" onClick={savePng} disabled={!canvasElement}><Camera size={13}/>PNG</button>
     </div>
     <div className="scene-caption">{element?.symbol || 'Atom'} first ionization energy: {energyLabel} <span className="caption-separator">·</span> orbital {orbitalLabel} <span className="caption-separator">·</span> radius in a₀</div>
-    <div className="scene-visual-note">Dots continuously resample the probability cloud. Red and blue show opposite wavefunction phases.</div>
+    <div className="scene-visual-note">Each frame samples the orbital probability density; dots are not electron paths. Colors show opposite wavefunction phases.</div>
   </div>;
 }
