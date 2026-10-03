@@ -32,7 +32,7 @@ export default function AtomScene({ pointCount, n, l, m, radiusA0, element }) {
 
   return <div className="scene-canvas">
     <Canvas camera={{ position: [5.6, 4.2, 6.4], fov: 42 }} dpr={[1, 1.6]}>
-      <color attach="background" args={['#080d15']}/>
+      <color attach="background" args={['#05080d']}/>
       <ambientLight intensity={0.8}/>
       <directionalLight position={[4, 6, 5]} intensity={1.4}/>
       <Suspense fallback={null}>
@@ -43,8 +43,9 @@ export default function AtomScene({ pointCount, n, l, m, radiusA0, element }) {
       </Suspense>
       <CameraControls n={n}/>
     </Canvas>
-    <div className="scene-caption"><span className="legend-dot energy-dot"/>{element?.symbol || 'Atom'} first ionization energy: {energyLabel} <span className="caption-separator">·</span> orbital {orbitalLabel} <span className="caption-separator">·</span> radius in a₀</div>
+    <div className="scene-visual-legend"><span className="legend-dot probability-dot"/>Probability orbital <span className="legend-dot energy-dot"/>Energy color</div>
+    <div className="scene-caption">{element?.symbol || 'Atom'} first ionization energy: {energyLabel} <span className="caption-separator">·</span> orbital {orbitalLabel} <span className="caption-separator">·</span> radius in a₀</div>
     <div className="scene-energy-scale" aria-label="First ionization energy scale, zero to twenty five electron volts"><span>0 eV</span><i/><span>25 eV</span></div>
-    <div className="scene-energy-note">Cloud shape remains hydrogenic; color maps one first ionization energy value.</div>
+    <div className="scene-energy-note">Energy color shows one value for this element. The blue halo shows orbital probability.</div>
   </div>;
 }
