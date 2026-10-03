@@ -13,13 +13,13 @@ function CameraControls({ n, view }) {
 
   useEffect(() => () => controls.dispose(), [controls]);
   useEffect(() => {
-    camera.position.set(5.6 * n * n, 4.2 * n * n, 6.4 * n * n);
+    camera.position.set(14 * n * n, 10.5 * n * n, 16 * n * n);
     camera.updateProjectionMatrix();
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.minDistance = 3;
-    controls.maxDistance = 24 * n * n;
+    controls.maxDistance = 60 * n * n;
     controls.update();
   }, [camera, controls, n]);
 
@@ -33,7 +33,7 @@ function CameraControls({ n, view }) {
       destination.set(0, distance, 0);
       up.set(0, 0, 1);
     } else if (view.axis === 'z') destination.set(0, 0, distance);
-    else destination.set(5.6 * n * n, 4.2 * n * n, 6.4 * n * n);
+    else destination.set(14 * n * n, 10.5 * n * n, 16 * n * n);
     if (view.axis !== 'y') up.set(0, 1, 0);
     transition.current = {
       elapsed: 0,
@@ -107,7 +107,7 @@ export default function AtomScene({ pointCount, n, l, m, element }) {
   };
 
   return <div className="scene-canvas">
-    <Canvas camera={{ position: [5.6, 4.2, 6.4], fov: 42 }} dpr={[1, 1.6]} gl={{ preserveDrawingBuffer: true }} onCreated={({ gl }) => setCanvasElement(gl.domElement)}>
+    <Canvas camera={{ position: [14, 10.5, 16], fov: 42 }} dpr={[1, 1.6]} gl={{ preserveDrawingBuffer: true }} onCreated={({ gl }) => setCanvasElement(gl.domElement)}>
       <color attach="background" args={['#05080d']}/>
       <ambientLight intensity={0.8}/>
       <directionalLight position={[4, 6, 5]} intensity={1.4}/>
