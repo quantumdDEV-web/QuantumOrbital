@@ -60,6 +60,11 @@ input[type=range]::-webkit-slider-thumb { background: #9ecab4; border-color: #17
 .scene-actions button.active { color: #e4f3e9; background: #293a30; border-color: #607868; }
 .scene-visual-legend { border-radius: 2px; background: #111713; border-color: #36423b; text-shadow: none; }
 .scene-visual-note { color: #a9b5ad; text-shadow: none; }
+.scene-visual-legend { color: #c3c9c2; }
+.density-key { background: linear-gradient(90deg, #405b59, #718a75, #b0b69b, #e3d6b7); }
+.positive-phase-dot { background: #c5d2cb; box-shadow: none; }
+.negative-phase-dot { background: #9c8e80; box-shadow: none; }
+.legend-dot { box-shadow: none; }
 .scene-metrics { background: #151b18; border-color: #303934; gap: 20px; }
 .scene-metrics small { color: #8d9a91; }
 .scene-metrics strong { color: #d4ddd6; }

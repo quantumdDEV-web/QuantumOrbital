@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { AxesHelper, BufferAttribute, Color, DoubleSide, OrthographicCamera, PerspectiveCamera, PlaneGeometry } from 'three';
 import { OrbitControls as ThreeOrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Camera, Pause, Play, RotateCcw } from 'lucide-react';
+import { Camera, RotateCcw } from 'lucide-react';
 import { hydrogenicProbabilityDensity } from '../physics/hydrogen/orbitalMath.js';
 import OrbitalCloud from './OrbitalCloud.jsx';
 import Nucleus from './Nucleus.jsx';
@@ -130,7 +130,7 @@ function ReferenceFrame() {
   return null;
 }
 
-const slicePalette = ['#101b3a', '#294a8a', '#218f9a', '#65b86e', '#f4d35e', '#fff3c4'].map(color => new Color(color));
+const slicePalette = ['#17231f', '#314b42', '#567767', '#91aa89', '#c8c49c', '#eee2c5'].map(color => new Color(color));
 const sliceColor = new Color();
 function SliceSection({ n, l, m, offset }) {
   const geometry = useMemo(() => {
@@ -158,8 +158,7 @@ function SliceSection({ n, l, m, offset }) {
   return <mesh geometry={geometry} position={[0, 0, offset]} renderOrder={2}><meshBasicMaterial vertexColors transparent opacity={0.78} side={DoubleSide} depthWrite={false}/></mesh>;
 }
 
-export default function AtomScene({ pointCount, n, l, m, element, slice = false, sliceOffset = 0, colorMode = 'phase', onSliceToggle = () => {}, onColorModeChange = () => {} }) {
-  const [paused, setPaused] = useState(false);
+export default function AtomScene({ pointCount, n, l, m, element, slice = false, sliceOffset = 0, colorMode = 'density', onSliceToggle = () => {}, onColorModeChange = () => {} }) {
   const [orthographic, setOrthographic] = useState(false);
   const [view, setView] = useState({ axis: '', request: 0 });
   const [canvasElement, setCanvasElement] = useState(null);
@@ -182,21 +181,20 @@ export default function AtomScene({ pointCount, n, l, m, element, slice = false,
       <ambientLight intensity={0.8}/>
       <directionalLight position={[4, 6, 5]} intensity={1.4}/>
       <Suspense fallback={null}>
-        <OrbitalCloud pointCount={pointCount} n={n} l={l} m={m} paused={paused} colorMode={colorMode}/>
+        <OrbitalCloud pointCount={pointCount} n={n} l={l} m={m} colorMode={colorMode}/>
         {slice && <SliceSection n={n} l={l} m={m} offset={sliceOffset}/>}
         <Nucleus/>
         <ReferenceFrame/>
       </Suspense>
       <CameraControls n={n} view={view} orthographic={orthographic}/>
     </Canvas>
-    <div className="scene-visual-legend">{colorMode === 'phase' ? <><span className="legend-dot positive-phase-dot"/>+ phase <span className="legend-dot negative-phase-dot"/>− phase</> : <><span className="density-key"/>log |ψ|² · a₀⁻³</>}{slice && <> <span className="legend-separator">/</span> XY slice z = {sliceOffset.toFixed(1)} a₀ · relative scale</>}</div>
+    <div className="scene-visual-legend">{colorMode === 'phase' ? <><span className="legend-dot positive-phase-dot"/>+ phase <span className="legend-dot negative-phase-dot"/>− phase</> : <><span className="density-key"/>|ψ|² · a₀⁻³</>}{slice && <> <span className="legend-separator">/</span> XY slice z = {sliceOffset.toFixed(1)} a₀ · relative scale</>}</div>
     <div className="scene-actions" role="group" aria-label="3D visualization controls">
       {['x', 'y', 'z'].map(axis => <button key={axis} type="button" className={view.axis === axis ? 'active' : ''} aria-pressed={view.axis === axis} onClick={() => setView(current => ({ axis, request: current.request + 1 }))} aria-label={`View along ${axis.toUpperCase()} axis`}>{axis.toUpperCase()}</button>)}
       <button type="button" className={orthographic ? 'active' : ''} aria-pressed={orthographic} onClick={() => setOrthographic(value => !value)}>{orthographic ? 'Ortho' : 'Persp'}</button>
       <button type="button" className={slice ? 'active' : ''} aria-pressed={slice} onClick={onSliceToggle}>Slice</button>
-      <button type="button" className={colorMode === 'density' ? 'active' : ''} aria-pressed={colorMode === 'density'} onClick={onColorModeChange}>{colorMode === 'phase' ? 'Phase' : 'Viridis'}</button>
+      <button type="button" className={colorMode === 'phase' ? 'active' : ''} aria-pressed={colorMode === 'phase'} onClick={onColorModeChange}>{colorMode === 'phase' ? 'Phase' : 'Density'}</button>
       <button type="button" onClick={() => setView(current => ({ axis: 'reset', request: current.request + 1 }))} aria-label="Reset camera view"><RotateCcw size={13}/></button>
-      <button type="button" onClick={() => setPaused(value => !value)} aria-pressed={paused}>{paused ? <Play size={13}/> : <Pause size={13}/>}{paused ? 'Resume' : 'Pause'}</button>
       <button type="button" onClick={savePng} disabled={!canvasElement}><Camera size={13}/>PNG</button>
     </div>
     <div className="scene-caption">{element?.symbol || 'Atom'} first ionization energy: {energyLabel} <span className="caption-separator">·</span> orbital {orbitalLabel} <span className="caption-separator">·</span> radius in a₀</div>
