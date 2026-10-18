@@ -46,11 +46,12 @@ export const VOLUME_FRAGMENT_SHADER = /* glsl */`
   uniform float uIsoLevel;
   uniform int uSliceAxis;
   uniform float uSlicePos;
+  uniform int uSteps;
   varying vec3 vLocalPosition;
   ${COMMON}
 
-  const int VOLUME_STEPS = 160;
-  const int SURFACE_STEPS = 220;
+  const int VOLUME_MAX_STEPS = 160;
+  const int SURFACE_MAX_STEPS = 220;
 
   vec2 psiAt(vec3 p) {
     vec4 s = texture(uPsi, p * 0.5 + 0.5);
@@ -95,11 +96,13 @@ export const VOLUME_FRAGMENT_SHADER = /* glsl */`
 
     if (uRender == 1) {
       // Isosurface: first crossings of |ψ|² = level, shaded and layered front to back.
-      float stepLength = (rayEnd - rayStart) / float(SURFACE_STEPS);
+      int surfaceSteps = min(SURFACE_MAX_STEPS, uSteps * 4 / 3);
+      float stepLength = (rayEnd - rayStart) / float(surfaceSteps);
       float previousT = rayStart;
       float previousValue = densityAt(rayOrigin + rayDirection * rayStart) - uIsoLevel;
       int hits = 0;
-      for (int step = 1; step <= SURFACE_STEPS; step++) {
+      for (int step = 1; step <= SURFACE_MAX_STEPS; step++) {
+        if (step > surfaceSteps) break;
         float t = rayStart + float(step) * stepLength;
         float value = densityAt(rayOrigin + rayDirection * t) - uIsoLevel;
         if (value * previousValue < 0.0) {
@@ -157,11 +160,12 @@ export const VOLUME_FRAGMENT_SHADER = /* glsl */`
       }
     } else {
       // Volume: front-to-back emission/absorption with per-pixel start jitter.
-      float stepLength = (rayEnd - rayStart) / float(VOLUME_STEPS);
+      float stepLength = (rayEnd - rayStart) / float(uSteps);
       float jitter = hash(gl_FragCoord.xy);
-      for (int step = 0; step < VOLUME_STEPS; step++) {
+      for (int step = 0; step < VOLUME_MAX_STEPS; step++) {
+        if (step >= uSteps) break;
         float distanceAlongRay = rayStart + (float(step) + jitter) * stepLength;
-        if (distanceAlongRay >= rayEnd || accumulatedAlpha > 0.985) break;
+        if (distanceAlongRay >= rayEnd || accumulatedAlpha > 0.97) break;
         vec2 q = psiAt(rayOrigin + rayDirection * distanceAlongRay);
         float displayedDensity = pow(clamp(dot(q, q), 0.0, 1.0), uGamma);
         if (displayedDensity <= 0.0001) continue;

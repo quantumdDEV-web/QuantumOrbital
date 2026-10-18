@@ -138,7 +138,7 @@ export default function OrbitalViewer({ state, onChange, initialCamera, onCamera
         size: stateGridSize(model.groups),
         extent: stateExtent(model.groups, state.nuclearCharge),
       });
-    }, 90);
+    }, 160);
     return () => {
       window.clearTimeout(timer);
       worker?.terminate();
