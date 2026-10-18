@@ -25,7 +25,7 @@ export default function App() {
   const [radiusA0, setRadiusA0] = useState(1);
   const [slice, setSlice] = useState(false);
   const [sliceOffset, setSliceOffset] = useState(0);
-  const [colorMode, setColorMode] = useState('density');
+  const [colorMode, setColorMode] = useState('phase');
   const initial = useMemo(() => orbitalFromElement(selected), [selected]);
   const [orbital, setOrbital] = useState(initial);
   const [m, setM] = useState(0);
