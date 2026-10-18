@@ -85,6 +85,9 @@ function densityTexture(volume) {
   const texture = new Data3DTexture(volume.density, volume.size, volume.size, volume.size);
   texture.format = RedFormat;
   texture.type = UnsignedShortType;
+  // Unsigned-short RED data needs a sized normalized format in WebGL2.
+  // Leaving this as unsized RED can raise INVALID_OPERATION and yield a blank volume.
+  texture.internalFormat = 'R16';
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.wrapS = ClampToEdgeWrapping;
