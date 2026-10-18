@@ -7,6 +7,14 @@ import { sampleOrbitalPositions } from '../visualization/particleSampling.js';
 
 const POSITIVE_PHASE = new Color('#2e64e1');
 const NEGATIVE_PHASE = new Color('#ff6666');
+const VIRIDIS = ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'].map(value => new Color(value));
+const COLOR_TEMP = new Color();
+
+function densityColor(value, colors) {
+  const scaled = Math.max(0, Math.min(0.9999, value)) * (colors.length - 1);
+  const index = Math.floor(scaled);
+  return COLOR_TEMP.copy(colors[index]).lerp(colors[index + 1], scaled - index);
+}
 
 function writePhaseColor(colors, pointIndex, x, y, z, n, l, m) {
   const offset = pointIndex * 3;
@@ -16,16 +24,20 @@ function writePhaseColor(colors, pointIndex, x, y, z, n, l, m) {
   colors[offset + 2] = color.b;
 }
 
-export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused = false }) {
+export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused = false, colorMode = 'phase' }) {
   const positions = useOrbital(pointCount, n, l, m);
   const sampleFrame = useRef(0);
   const colors = useMemo(() => {
     const result = new Float32Array(positions.length);
     for (let i = 0; i < positions.length; i += 3) {
-      writePhaseColor(result, i / 3, positions[i], positions[i + 1], positions[i + 2], n, l, m);
+      const amplitude = hydrogenicWavefunctionSign(n, l, m, positions[i], positions[i + 1], positions[i + 2]);
+      if (colorMode === 'density') {
+        const color = densityColor(Math.min(1, Math.log1p(amplitude * amplitude * 100) / Math.log(101)), VIRIDIS);
+        result[i] = color.r; result[i + 1] = color.g; result[i + 2] = color.b;
+      } else writePhaseColor(result, i / 3, positions[i], positions[i + 1], positions[i + 2], n, l, m);
     }
     return result;
-  }, [positions, n, l, m]);
+  }, [positions, n, l, m, colorMode]);
   const geometry = useMemo(() => {
     const next = new BufferGeometry();
     next.setAttribute('position', new BufferAttribute(positions, 3));
@@ -37,8 +49,13 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused =
     sampleFrame.current = 0;
   }, [positions]);
 
-  useFrame(() => {
+  const elapsed = useRef(0);
+  useFrame((_, delta) => {
     if (paused) return;
+    // A measured cadence keeps the cloud alive without resampling thousands of points at display refresh rate.
+    elapsed.current += delta;
+    if (elapsed.current < 0.16) return;
+    elapsed.current = 0;
     const attribute = geometry.getAttribute('position');
     const animatedPositions = attribute.array;
     const colorAttribute = geometry.getAttribute('color');
@@ -48,7 +65,11 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused =
     animatedPositions.set(samples);
     for (let point = 0; point < pointCount; point += 1) {
       const offset = point * 3;
-      writePhaseColor(animatedColors, point, samples[offset], samples[offset + 1], samples[offset + 2], n, l, m);
+      if (colorMode === 'density') {
+        const amplitude = hydrogenicWavefunctionSign(n, l, m, samples[offset], samples[offset + 1], samples[offset + 2]);
+        const color = densityColor(Math.min(1, Math.log1p(amplitude * amplitude * 100) / Math.log(101)), VIRIDIS);
+        animatedColors[offset] = color.r; animatedColors[offset + 1] = color.g; animatedColors[offset + 2] = color.b;
+      } else writePhaseColor(animatedColors, point, samples[offset], samples[offset + 1], samples[offset + 2], n, l, m);
     }
     colorAttribute.needsUpdate = true;
     attribute.needsUpdate = true;

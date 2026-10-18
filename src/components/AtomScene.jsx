@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { AxesHelper } from 'three';
+import { AxesHelper, BufferAttribute, BufferGeometry, Color } from 'three';
 import { OrbitControls as ThreeOrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Camera, Pause, Play, RotateCcw } from 'lucide-react';
 import OrbitalCloud from './OrbitalCloud.jsx';
@@ -90,7 +90,35 @@ function ReferenceFrame() {
   return null;
 }
 
-export default function AtomScene({ pointCount, n, l, m, element }) {
+const slicePalette = ['#080b2a', '#273c8c', '#287b8b', '#65b86e', '#f4d35e', '#f7f7dc'].map(color => new Color(color));
+const sliceColor = new Color();
+function SliceSection({ n, l, m, offset }) {
+  const geometry = useMemo(() => {
+    const divisions = 48, extent = Math.max(5, 5 * n * n);
+    const positions = new Float32Array((divisions + 1) ** 2 * 3), density = new Float32Array((divisions + 1) ** 2);
+    let maximum = 0;
+    for (let row = 0; row <= divisions; row += 1) for (let column = 0; column <= divisions; column += 1) {
+      const index = row * (divisions + 1) + column, x = (column / divisions * 2 - 1) * extent, y = (row / divisions * 2 - 1) * extent;
+      positions[index * 3] = x; positions[index * 3 + 1] = y;
+      const amplitude = hydrogenicWavefunctionSign(n, l, m, x, y, offset);
+      density[index] = amplitude * amplitude; maximum = Math.max(maximum, density[index]);
+    }
+    const colors = new Float32Array(positions.length);
+    for (let index = 0; index < density.length; index += 1) {
+      const scaled = Math.sqrt(maximum ? density[index] / maximum : 0) * (slicePalette.length - 1);
+      const segment = Math.min(slicePalette.length - 2, Math.floor(scaled));
+      const color = sliceColor.copy(slicePalette[segment]).lerp(slicePalette[segment + 1], scaled - segment);
+      colors.set([color.r, color.g, color.b], index * 3);
+    }
+    const result = new BufferGeometry();
+    result.setAttribute('position', new BufferAttribute(positions, 3)); result.setAttribute('color', new BufferAttribute(colors, 3));
+    return result;
+  }, [n, l, m, offset]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <points geometry={geometry} renderOrder={2}><pointsMaterial vertexColors size={0.16} transparent opacity={0.92} sizeAttenuation depthWrite={false}/></points>;
+}
+
+export default function AtomScene({ pointCount, n, l, m, element, slice = false, sliceOffset = 0, colorMode = 'phase', onSliceToggle = () => {}, onColorModeChange = () => {} }) {
   const [paused, setPaused] = useState(false);
   const [view, setView] = useState({ axis: '', request: 0 });
   const [canvasElement, setCanvasElement] = useState(null);
@@ -113,15 +141,18 @@ export default function AtomScene({ pointCount, n, l, m, element }) {
       <ambientLight intensity={0.8}/>
       <directionalLight position={[4, 6, 5]} intensity={1.4}/>
       <Suspense fallback={null}>
-        <OrbitalCloud pointCount={pointCount} n={n} l={l} m={m} paused={paused}/>
+        <OrbitalCloud pointCount={pointCount} n={n} l={l} m={m} paused={paused} colorMode={colorMode}/>
+        {slice && <SliceSection n={n} l={l} m={m} offset={sliceOffset}/>}
         <Nucleus/>
         <ReferenceFrame/>
       </Suspense>
       <CameraControls n={n} view={view}/>
     </Canvas>
-    <div className="scene-visual-legend"><span className="legend-dot probability-dot"/>Probability <span className="legend-dot positive-phase-dot"/>+ phase <span className="legend-dot negative-phase-dot"/>− phase</div>
+    <div className="scene-visual-legend">{colorMode === 'phase' ? <><span className="legend-dot positive-phase-dot"/>+ phase <span className="legend-dot negative-phase-dot"/>− phase</> : <><span className="density-key"/>|ψ|² density</>}{slice && <> <span className="legend-separator">/</span> z = {sliceOffset.toFixed(1)} a₀</>}</div>
     <div className="scene-actions" role="group" aria-label="3D visualization controls">
       {['x', 'y', 'z'].map(axis => <button key={axis} type="button" className={view.axis === axis ? 'active' : ''} aria-pressed={view.axis === axis} onClick={() => setView(current => ({ axis, request: current.request + 1 }))} aria-label={`View along ${axis.toUpperCase()} axis`}>{axis.toUpperCase()}</button>)}
+      <button type="button" className={slice ? 'active' : ''} aria-pressed={slice} onClick={onSliceToggle}>Slice</button>
+      <button type="button" className={colorMode === 'density' ? 'active' : ''} aria-pressed={colorMode === 'density'} onClick={onColorModeChange}>{colorMode === 'phase' ? 'Phase' : 'Viridis'}</button>
       <button type="button" onClick={() => setView(current => ({ axis: 'reset', request: current.request + 1 }))} aria-label="Reset camera view"><RotateCcw size={13}/></button>
       <button type="button" onClick={() => setPaused(value => !value)} aria-pressed={paused}>{paused ? <Play size={13}/> : <Pause size={13}/>}{paused ? 'Resume' : 'Pause'}</button>
       <button type="button" onClick={savePng} disabled={!canvasElement}><Camera size={13}/>PNG</button>

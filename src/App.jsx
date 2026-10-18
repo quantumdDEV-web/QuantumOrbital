@@ -21,6 +21,9 @@ export default function App(){
  const [query,setQuery]=useState('');
  const [pointCount,setPointCount]=useState(16000);
  const [radiusA0,setRadiusA0]=useState(1);
+ const [slice,setSlice]=useState(false);
+ const [sliceOffset,setSliceOffset]=useState(0);
+ const [colorMode,setColorMode]=useState('phase');
  const initial=useMemo(()=>orbitalFromElement(selected),[selected]);
  const [orbital,setOrbital]=useState(initial);
  const [m,setM]=useState(0);
@@ -49,13 +52,14 @@ export default function App(){
       <label className="range-label"><span>Probability radius</span><strong>{radiusA0.toFixed(1)} a₀</strong></label>
       <input type="range" min=".1" max={maxRadiusA0} step={radiusStep} value={radiusA0} onChange={e=>setRadiusA0(Number(e.target.value))}/>
       <div className="range-ends"><span>.1 a₀</span><span>{maxRadiusA0.toFixed(0)} a₀</span></div>
+      {slice && <><div className="control-divider"/><label className="range-label"><span>XY probability slice · z</span><strong>{sliceOffset.toFixed(1)} a₀</strong></label><input type="range" min={-5*orbital.n*orbital.n} max={5*orbital.n*orbital.n} step="0.1" value={sliceOffset} onChange={e=>setSliceOffset(Number(e.target.value))}/><div className="range-ends"><span>−{(5*orbital.n*orbital.n).toFixed(0)} a₀</span><span>+{(5*orbital.n*orbital.n).toFixed(0)} a₀</span></div></>}
       <div className="control-divider"/>
       <label className="range-label"><span>Cloud samples</span><strong>{(pointCount/1000).toFixed(0)}k</strong></label>
       <input type="range" min="4000" max="32000" step="4000" value={pointCount} onChange={e=>setPointCount(Number(e.target.value))}/>
       <div className="range-ends"><span>4k</span><span>32k</span></div>
     </section>
    </aside>
-   <section className="center-column"><div className="scene-toolbar"><span><i/> 3D ORBITAL VISUALIZATION</span><span>DRAG TO ROTATE <b>·</b> SCROLL TO ZOOM</span></div><AtomScene pointCount={pointCount} n={orbital.n} l={orbital.l} m={m} element={selected}/><div className="scene-metrics"><div><small>ORBITAL</small><strong>{currentOrbital}{orbital.l>0?' · m = '+m:''}</strong></div><div><small>ELECTRON SHELLS</small><strong>{shellText(selected.shells)}</strong></div><div><small>BOHR RADIUS</small><strong>5.292 × 10⁻¹¹ m</strong></div></div></section>
+   <section className="center-column"><div className="scene-toolbar"><span><i/> 3D ORBITAL VISUALIZATION</span><span>DRAG TO ROTATE <b>·</b> SCROLL TO ZOOM</span></div><AtomScene pointCount={pointCount} n={orbital.n} l={orbital.l} m={m} element={selected} slice={slice} sliceOffset={sliceOffset} colorMode={colorMode} onSliceToggle={()=>setSlice(v=>!v)} onColorModeChange={()=>setColorMode(v=>v==='phase'?'density':'phase')}/><div className="scene-metrics"><div><small>ORBITAL</small><strong>{currentOrbital}{orbital.l>0?' · m = '+m:''}</strong></div><div><small>ELECTRON SHELLS</small><strong>{shellText(selected.shells)}</strong></div><div><small>BOHR RADIUS</small><strong>5.292 × 10⁻¹¹ m</strong></div></div></section>
    <aside className="right-column">
     <section className="panel probability-panel"><div className="panel-heading"><span className="icon-box green"><Atom size={15}/></span><div><div className="eyebrow">ELEMENT PROFILE</div><h2>{selected.name}</h2></div></div>
       <div className="stats-grid"><div><small>ATOMIC NUMBER</small><strong>{selected.z}</strong></div><div><small>ATOMIC MASS</small><strong>{selected.mass}</strong><em>u</em></div><div><small>ELECTRONS</small><strong>{selected.electrons}</strong></div><div><small>IONIZATION</small><strong>{selected.ionizationEnergy==null?'N/A':`${selected.ionizationEnergyEstimated?'~':''}${selected.ionizationEnergy}`}</strong><em>eV</em></div></div>
