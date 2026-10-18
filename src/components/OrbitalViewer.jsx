@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  BoxGeometry, ClampToEdgeWrapping, Data3DTexture, DataTexture, FrontSide,
-  LinearFilter, NearestFilter, RedFormat, RGBAFormat, ShaderMaterial,
-  UnsignedByteType, UnsignedShortType, Mesh, NoToneMapping, PerspectiveCamera,
+  BoxGeometry, ClampToEdgeWrapping, Data3DTexture, DataTexture, DataUtils, FrontSide,
+  HalfFloatType, LinearFilter, NearestFilter, RedFormat, RGBAFormat, ShaderMaterial,
+  UnsignedByteType, Mesh, NoToneMapping, PerspectiveCamera,
   Scene, SRGBColorSpace, WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -82,12 +82,17 @@ const CAMERA_VIEWS = {
 };
 
 function densityTexture(volume) {
-  const texture = new Data3DTexture(volume.density, volume.size, volume.size, volume.size);
+  // WebGL2 has no R16 (normalized 16-bit) texture format without an extension,
+  // so the Uint16 data is converted to half floats (R16F), which is core WebGL2
+  // and supports linear filtering everywhere.
+  const half = new Uint16Array(volume.density.length);
+  for (let index = 0; index < half.length; index += 1) {
+    half[index] = DataUtils.toHalfFloat(volume.density[index] / 65535);
+  }
+  const texture = new Data3DTexture(half, volume.size, volume.size, volume.size);
   texture.format = RedFormat;
-  texture.type = UnsignedShortType;
-  // Unsigned-short RED data needs a sized normalized format in WebGL2.
-  // Leaving this as unsized RED can raise INVALID_OPERATION and yield a blank volume.
-  texture.internalFormat = 'R16';
+  texture.type = HalfFloatType;
+  texture.internalFormat = 'R16F';
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.wrapS = ClampToEdgeWrapping;
