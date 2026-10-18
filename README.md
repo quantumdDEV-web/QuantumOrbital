@@ -1,45 +1,74 @@
 # QuantumOrbital
 
-An interactive 3D density viewer for analytical hydrogenic eigenstates.
+**Explore the shape of hydrogenic orbitals in an interactive 3D viewer.**
 
-The model evaluates normalized hydrogenic radial functions and orthonormal complex spherical harmonics, then samples
+[Open QuantumOrbital on GitHub Pages](https://quantumddev-web.github.io/QuantumOrbital/)
+
+QuantumOrbital calculates hydrogenic wavefunctions and turns their probability density into a rotatable volume. Choose a quantum state, orbit the camera, and inspect how the density changes across space.
+
+## See the calculated orbitals
+
+These images are generated from QuantumOrbital's analytical wavefunction code and sampled 3D density grid. Each image shows the exact `y = 0` cross-section, colored with the project's Seaborn Rocket lookup table and normalized to the sampled 3D field's 99.9th percentile. They are calculated previews, not photographs or measured atomic images.
+
+<p align="center">
+  <img src="public/orbital-1s-slice.png" alt="Calculated x-z probability-density slice for hydrogen 1s" width="360" />
+  <img src="public/orbital-3d-slice.png" alt="Calculated x-z probability-density slice for hydrogen 3d, m equals 1" width="360" />
+</p>
+
+| State | Quantum numbers | What the slice shows |
+| --- | --- | --- |
+| Hydrogen 1s | `n = 1, ℓ = 0, m = 0` | Spherically symmetric density; the plane appears as a central peak. |
+| Hydrogen 3d | `n = 3, ℓ = 2, m = 1` | Four bright pockets in this plane slice; the full 3D density forms two toroidal lobes above and below the equatorial node. |
+
+The viewer samples the full 3D field; these 2D previews are just sections through that calculated volume.
+
+## What the model calculates
+
+The app evaluates the normalized, non-relativistic hydrogenic solution
+
 \[
-  \rho_{n\ell m}(x,y,z)=|R_{n\ell}(r)Y_\ell^m(\theta,\phi)|^2
+\psi_{n\ell m}(r,\theta,\phi) = R_{n\ell}(r)Y_\ell^m(\theta,\phi),
+\qquad \rho = |\psi_{n\ell m}|^2.
 \]
-on a cubic volume grid. The grid is rendered in WebGL with front-to-back volume integration. Drag to orbit, right-drag to pan, scroll or pinch to zoom, or choose an `XY`, `XZ`, `YZ`, or isometric camera preset.
 
-## Viewer features
+- `n`, `ℓ`, and `m` obey the usual hydrogenic quantum-number rules.
+- The nucleus is treated as a point with infinite mass. `Z = 1` is hydrogen; `Z > 1` describes a one-electron hydrogen-like ion, not a neutral multi-electron atom.
+- The density is evaluated on a cubic grid in a Web Worker and displayed as a WebGL 3D volume.
+- Density color uses the Seaborn Rocket map. The display scale uses the 99.9th percentile of the sampled 3D field; exposure adjusts the transfer curve for visibility.
+- The displayed opacity is a rendering choice, not a physical absorption coefficient or another probability model.
 
-- **Orbital types:** complex eigenstates, real orbitals (p_x, d_z², ...), and sp / sp² / sp³ hybrids.
-- **Superposition:** mix any two states; different n beat at the energy difference (animated, time rescaled for display).
-- **Render modes:** volume, isosurface enclosing a chosen share of the probability, slice plane, and Monte Carlo electron positions.
-- **Colouring:** density (Rocket) or phase / sign of the wavefunction.
-- **Camera:** animated presets, auto-rotate, fly inside the cloud, PNG export, and a shareable link that stores the state and camera in the URL hash.
-- **Radial plot:** r²R² with radial nodes marked, plus node counts.
+## Using the viewer
 
-## Model and display
+- Drag to rotate, right-drag to pan, and scroll or pinch to zoom.
+- Use `ISO`, `XY`, `XZ`, and `YZ` for standard camera views; `RESET` restores the initial framing.
+- Select nuclear charge and quantum numbers to explore different hydrogenic states. The exposure slider changes density contrast.
 
-- `n`, `ℓ`, `m`, and nuclear charge `Z` follow the hydrogenic rules: `n ≥ 1`, `0 ≤ ℓ < n`, and `|m| ≤ ℓ`.
-- The model is the exact non-relativistic one-electron Coulomb solution with an infinite-mass point nucleus. `Z = 1` is hydrogen; `Z > 1` is a hydrogen-like ion. It does not approximate neutral multielectron atoms.
-- Radial and angular factors are normalized analytically. `m` changes the complex wavefunction phase; in a stationary state, the complex-harmonic density is independent of the sign of `m`.
-- Grid framing follows the reference plotting rule with `k = 2`: `extent = k(3n² − ℓ(ℓ+1))/(2Z)` in Bohr radii.
-- Density colors use Seaborn's 256-sample `rocket` lookup table. The renderer uses `vmin = 0`, the sampled-volume 99.9th percentile as `vmax`, and `γ = 1/(1 + exposure)`, matching the reference plot's `PowerNorm` mapping. Values above `vmax` are clipped.
-- The opacity integration is specific to the 3D volume display; it is not a physical absorption coefficient or an additional probability model.
-- Density fields are sampled in a Web Worker at 72³, 88³, or 96³ voxels depending on `n`, then linearly reconstructed by the GPU.
-
-The [reference project](https://github.com/ssebastianmag/hydrogen-wavefunctions) shows 2D plane plots, not 3D volume plots. This viewer extends its analytical density definition and display normalization to a three-dimensional field.
-
-## Development
+## Run locally
 
 ```sh
 npm ci
 npm run dev
+```
+
+Run the scientific checks and production build with:
+
+```sh
 npm test
 npm run build
 ```
 
-GitHub Pages deployment uses the existing `.github/workflows/pages.yml` workflow and the `/QuantumOrbital/` Vite base path.
+The preview images can be regenerated from the same orbital functions and color map used by the app:
 
-## Sources and licenses
+```sh
+node scripts/generate-readme-previews.js
+```
 
-The mathematical definition and plot settings are documented in the reference project's [README](https://github.com/ssebastianmag/hydrogen-wavefunctions#readme) and [plotting module](https://github.com/ssebastianmag/hydrogen-wavefunctions/blob/main/hwf_plots.py). Its source code is licensed under [GPL-3.0](https://github.com/ssebastianmag/hydrogen-wavefunctions/blob/main/LICENSE); no implementation code from it is included here. The Rocket colormap data is from Seaborn and is covered by the BSD-3-Clause terms in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). QuantumOrbital's own source remains under the repository's MIT license.
+GitHub Pages deployment uses the repository's Pages workflow and `/QuantumOrbital/` base path.
+
+## Collaborate
+
+I'm open to collaborating with others. If you're interested in improving the physics, validating calculations, refining the 3D rendering, or making the app easier to use, feel free to open an issue or a pull request. A small reproducible example or a clear description of the idea is a great place to start.
+
+## References and licenses
+
+The hydrogenic formulas and original 2D plotting approach were informed by the [hydrogen-wavefunctions reference project](https://github.com/ssebastianmag/hydrogen-wavefunctions) and its [plotting source](https://github.com/ssebastianmag/hydrogen-wavefunctions/blob/main/hwf_plots.py). That project is GPL-3.0; QuantumOrbital does not copy its implementation code. The Rocket lookup-table data comes from Seaborn and is covered by BSD-3-Clause terms recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). QuantumOrbital's source is MIT licensed.
