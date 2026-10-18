@@ -21,7 +21,7 @@
 .volume-stage { position: relative; height: min(76vh, 760px); min-height: 430px; overflow: hidden; background: #03051a; }
 .volume-canvas { position: absolute; inset: 0; }
 .volume-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-.volume-message { position: absolute; inset: 0; display: grid; place-items: center; color: #b9b0bf; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.volume-message { position: absolute; inset: 0; display: grid; place-items: center; color: #b9b0bf; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; pointer-events: none; }
 .volume-message.has-error { color: #e9a39c; }
 .volume-domain, .volume-help { position: absolute; bottom: 10px; color: #787286; pointer-events: none; font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .15px; }
 .volume-domain { left: 12px; }

@@ -159,9 +159,12 @@ function DensityViewport({ volume, exposure, view, resetKey, onError }) {
       scene.add(new Mesh(geometry, material));
 
       controls = new OrbitControls(camera, renderer.domElement);
+      controls.enabled = true;
+      controls.enableRotate = true;
+      controls.enableZoom = true;
+      controls.enablePan = true;
       controls.enableDamping = true;
       controls.dampingFactor = 0.09;
-      controls.enablePan = true;
       controls.screenSpacePanning = true;
       controls.minDistance = 2.2;
       controls.maxDistance = 12;
@@ -171,8 +174,12 @@ function DensityViewport({ volume, exposure, view, resetKey, onError }) {
         if (!live || animationFrame) return;
         animationFrame = window.requestAnimationFrame(() => {
           animationFrame = 0;
-          controls.update();
+          // OrbitControls applies damping over successive update calls. Keep
+          // rendering until that motion settles so the camera never appears
+          // to stop after the first pointer event.
+          const moving = controls.update();
           renderer.render(scene, camera);
+          if (moving) invalidate();
         });
       };
       controls.addEventListener('change', invalidate);
