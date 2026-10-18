@@ -21,7 +21,7 @@ export default function App() {
   return <main className="app-shell">
     <header className="app-header">
       <div className="brand">
-        <img src={`${import.meta.env.BASE_URL}quantum-orbital-mark.svg`} alt=""/>
+        <img src={`${import.meta.env.BASE_URL}orbital-mark.svg`} alt=""/>
         <div><strong>QuantumOrbital</strong><span>HYDROGENIC ORBITAL EXPLORER</span></div>
       </div>
       <div className="header-model">ANALYTICAL COULOMB EIGENSTATES <span>·</span> ONE ELECTRON</div>
