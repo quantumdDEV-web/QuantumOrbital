@@ -6,7 +6,8 @@ import { probabilityDensity1s } from './hydrogen/probability.js';
 import { wavefunction1s } from './hydrogen/wavefunction.js';
 import { integrateRadialProbability } from './calculations/normalization.js';
 import { probabilityInsideRadius1s } from './calculations/regionProbability.js';
-import { createRadialCdf, hydrogenicRadialDensity, hydrogenicRadialWavefunction, hydrogenicTransitionWavenumber, hydrogenicWavefunction, realSphericalHarmonic, radiusAtCdf } from './hydrogen/orbitalMath.js';
+import { complexSphericalHarmonicDensity, createHydrogenicDensityEvaluator, createRadialCdf, hydrogenicComplexProbabilityDensity, hydrogenicComplexWavefunction, hydrogenicRadialDensity, hydrogenicRadialWavefunction, hydrogenicTransitionWavenumber, hydrogenicWavefunction, realSphericalHarmonic, radiusAtCdf } from './hydrogen/orbitalMath.js';
+import { buildOrbitalVolume, hydrogenicGridExtent } from '../visualization/orbitalVolume.js';
 
 describe('quantum number rules', () => {
   it('accepts valid values and rejects invalid values', () => {
@@ -86,5 +87,71 @@ describe('normalized hydrogenic orbitals in atomic units', () => {
     // fine structure and QED corrections included in evaluated H I level energies.
     expect(idealInfiniteMass - nistHydrogen2p32).toBeGreaterThan(43.6);
     expect(idealInfiniteMass - nistHydrogen2p32).toBeLessThan(43.8);
+  });
+});
+
+describe('reference complex hydrogenic density', () => {
+  it('matches analytical 1s and 2p probability densities', () => {
+    expect(hydrogenicComplexProbabilityDensity(1, 0, 0, 0, 0, 0)).toBeCloseTo(1 / Math.PI, 14);
+    expect(hydrogenicComplexProbabilityDensity(1, 0, 0, 1, 0, 0)).toBeCloseTo(Math.exp(-2) / Math.PI, 14);
+    expect(hydrogenicComplexProbabilityDensity(2, 1, 0, 0, 0, 1)).toBeCloseTo(Math.exp(-1) / (32 * Math.PI), 14);
+    expect(hydrogenicComplexProbabilityDensity(2, 1, 1, 1, 0, 0)).toBeCloseTo(Math.exp(-1) / (64 * Math.PI), 14);
+    expect(hydrogenicComplexProbabilityDensity(2, 1, 1, 0, 0, 1)).toBe(0);
+  });
+
+  it('retains the complex phase of the eigenfunction before taking its modulus squared', () => {
+    const ground = hydrogenicComplexWavefunction(1, 0, 0, 0, 0, 0);
+    expect(ground.real).toBeCloseTo(1 / Math.sqrt(Math.PI), 14);
+    expect(ground.imag).toBe(0);
+    const orbital = hydrogenicComplexWavefunction(2, 1, 1, 1, 1, 0);
+    const expectedComponent = -Math.sqrt(Math.exp(-Math.SQRT2) / (64 * Math.PI));
+    expect(orbital.real).toBeCloseTo(expectedComponent, 14);
+    expect(orbital.imag).toBeCloseTo(expectedComponent, 14);
+    expect(orbital.real ** 2 + orbital.imag ** 2)
+      .toBeCloseTo(hydrogenicComplexProbabilityDensity(2, 1, 1, 1, 1, 0), 14);
+  });
+
+  it('normalizes complex angular harmonics and makes the ±m density symmetry explicit', () => {
+    const steps = 1200, h = 2 / steps;
+    for (let l = 0; l <= 6; l += 1) for (let m = -l; m <= l; m += 1) {
+      let integral = complexSphericalHarmonicDensity(l, m, -1) + complexSphericalHarmonicDensity(l, m, 1);
+      for (let index = 1; index < steps; index += 1) {
+        integral += (index % 2 ? 4 : 2) * complexSphericalHarmonicDensity(l, m, -1 + index * h);
+      }
+      integral *= h / 3 * 2 * Math.PI;
+      expect(integral).toBeCloseTo(1, 5);
+    }
+    expect(hydrogenicComplexProbabilityDensity(4, 2, 1, 1.2, -0.7, 2.1))
+      .toBeCloseTo(hydrogenicComplexProbabilityDensity(4, 2, -1, 1.2, -0.7, 2.1), 14);
+  });
+
+  it('scales exactly with nuclear charge and keeps the radial normalization', () => {
+    expect(hydrogenicComplexProbabilityDensity(1, 0, 0, 0, 0, 0, 3)).toBeCloseTo(27 / Math.PI, 14);
+    const expectedFiniteRange = 1 - (1 + 24 + 288) * Math.exp(-24);
+    for (const nuclearCharge of [1, 2, 8]) {
+      const steps = 12000, max = 12 / nuclearCharge, h = max / steps;
+      let sum = hydrogenicRadialDensity(1, 0, 0, nuclearCharge) + hydrogenicRadialDensity(1, 0, max, nuclearCharge);
+      for (let index = 1; index < steps; index += 1) {
+        sum += (index % 2 ? 4 : 2) * hydrogenicRadialDensity(1, 0, index * h, nuclearCharge);
+      }
+      expect(sum * h / 3).toBeCloseTo(expectedFiniteRange, 12);
+    }
+  });
+
+  it('uses reference framing and converges the sampled probability inside the display grid', () => {
+    expect(hydrogenicGridExtent(3, 2, 1)).toBe(21);
+    const coarse = buildOrbitalVolume({ n: 1, l: 0, m: 0, size: 24, extent: 3 });
+    const fine = buildOrbitalVolume({ n: 1, l: 0, m: 0, size: 48, extent: 3 });
+    expect(fine.capturedProbability).toBeGreaterThan(0.9);
+    expect(fine.capturedProbability).toBeLessThan(1);
+    expect(Math.abs(fine.capturedProbability - coarse.capturedProbability)).toBeLessThan(0.01);
+    expect(fine.density).toHaveLength(48 ** 3);
+    expect(fine.vmax).toBeGreaterThan(0);
+  });
+
+  it('interpolates the volume field close to the analytical density', () => {
+    const sample = createHydrogenicDensityEvaluator(3, 2, 1, 1);
+    const exact = hydrogenicComplexProbabilityDensity(3, 2, 1, 1.2, -0.7, 2.1);
+    expect(sample(1.2, -0.7, 2.1)).toBeCloseTo(exact, 14);
   });
 });

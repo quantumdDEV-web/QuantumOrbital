@@ -49,19 +49,91 @@ export function associatedLegendre(l, m, x) {
 }
 
 /** Normalized radial eigenfunction R_nl(r), in a₀^(-3/2). */
-export function hydrogenicRadialWavefunction(n, l, radiusA0) {
-  if (!Number.isInteger(n) || !Number.isInteger(l) || n < 1 || l < 0 || l >= n || radiusA0 < 0) return 0;
+export function hydrogenicRadialWavefunction(n, l, radiusA0, nuclearCharge = 1) {
+  if (!Number.isInteger(n) || !Number.isInteger(l) || !Number.isInteger(nuclearCharge)
+      || n < 1 || l < 0 || l >= n || radiusA0 < 0 || nuclearCharge < 1) return 0;
   const order = n - l - 1;
-  const logNormalization = 1.5 * Math.log(2 / n)
+  const logNormalization = 1.5 * Math.log(2 * nuclearCharge / n)
     + 0.5 * (logFactorial(order) - Math.log(2 * n) - logFactorial(n + l));
-  const rho = 2 * radiusA0 / n;
+  const rho = 2 * nuclearCharge * radiusA0 / n;
   return Math.exp(logNormalization - rho / 2) * rho ** l * generalizedLaguerre(order, 2 * l + 1, rho);
 }
 
 /** Radial probability density r²|R_nl(r)|², per a₀. */
-export function hydrogenicRadialDensity(n, l, radiusA0) {
-  const radial = hydrogenicRadialWavefunction(n, l, radiusA0);
+export function hydrogenicRadialDensity(n, l, radiusA0, nuclearCharge = 1) {
+  const radial = hydrogenicRadialWavefunction(n, l, radiusA0, nuclearCharge);
   return radiusA0 * radiusA0 * radial * radial;
+}
+
+/** |Y_lm|^2 for the orthonormal complex spherical harmonics used by the reference. */
+export function complexSphericalHarmonicDensity(l, m, cosTheta) {
+  const order = Math.abs(m);
+  if (!Number.isInteger(l) || !Number.isInteger(m) || l < 0 || order > l) return 0;
+  const normalizationSquared = (2 * l + 1) / (4 * Math.PI)
+    * Math.exp(logFactorial(l - order) - logFactorial(l + order));
+  const legendre = associatedLegendre(l, order, cosTheta);
+  return normalizationSquared * legendre * legendre;
+}
+
+/** Orthonormal complex Y_lm(theta,phi), with the Condon–Shortley convention. */
+export function complexSphericalHarmonic(l, m, cosTheta, phi) {
+  const order = Math.abs(m);
+  if (!Number.isInteger(l) || !Number.isInteger(m) || l < 0 || order > l) {
+    return { real: 0, imag: 0 };
+  }
+  const normalization = Math.sqrt((2 * l + 1) / (4 * Math.PI)
+    * Math.exp(logFactorial(l - order) - logFactorial(l + order)));
+  const negativeMPhase = m < 0 && order % 2 ? -1 : 1;
+  const amplitude = negativeMPhase * normalization * associatedLegendre(l, order, cosTheta);
+  const azimuth = m * phi;
+  return { real: amplitude * Math.cos(azimuth), imag: amplitude * Math.sin(azimuth) };
+}
+
+/** Normalized complex hydrogenic eigenfunction ψ_nlm in a0^(-3/2). */
+export function hydrogenicComplexWavefunction(n, l, m, x, y, z, nuclearCharge = 1) {
+  if (!Number.isInteger(n) || !Number.isInteger(l) || !Number.isInteger(m)
+      || !Number.isInteger(nuclearCharge) || n < 1 || l < 0 || l >= n
+      || Math.abs(m) > l || nuclearCharge < 1) {
+    return { real: 0, imag: 0 };
+  }
+  const radius = Math.hypot(x, y, z);
+  const radial = hydrogenicRadialWavefunction(n, l, radius, nuclearCharge);
+  const cosine = radius === 0 ? 1 : z / radius;
+  const azimuth = Math.atan2(y, x);
+  const angular = complexSphericalHarmonic(l, m, cosine, azimuth);
+  return { real: radial * angular.real, imag: radial * angular.imag };
+}
+
+/** Normalized hydrogenic probability density |R_nl(r) Y_lm(theta,phi)|^2 in a0^-3.
+ * The azimuthal phase of complex Y_lm has unit magnitude and therefore drops out.
+ */
+export function hydrogenicComplexProbabilityDensity(n, l, m, x, y, z, nuclearCharge = 1) {
+  const wavefunction = hydrogenicComplexWavefunction(n, l, m, x, y, z, nuclearCharge);
+  return wavefunction.real * wavefunction.real + wavefunction.imag * wavefunction.imag;
+}
+
+/** Build an exact pointwise density evaluator with state constants precomputed. */
+export function createHydrogenicDensityEvaluator(n, l, m, nuclearCharge = 1) {
+  if (!Number.isInteger(n) || !Number.isInteger(l) || !Number.isInteger(m)
+      || !Number.isInteger(nuclearCharge) || n < 1 || l < 0 || l >= n
+      || Math.abs(m) > l || nuclearCharge < 1) {
+    throw new RangeError('Expected n ≥ 1, 0 ≤ l < n, |m| ≤ l, and integer Z ≥ 1');
+  }
+  const radialOrder = n - l - 1;
+  const radialNormalization = Math.exp(1.5 * Math.log(2 * nuclearCharge / n)
+    + 0.5 * (logFactorial(radialOrder) - Math.log(2 * n) - logFactorial(n + l)));
+  const angularOrder = Math.abs(m);
+  const angularNormalizationSquared = (2 * l + 1) / (4 * Math.PI)
+    * Math.exp(logFactorial(l - angularOrder) - logFactorial(l + angularOrder));
+  return (x, y, z) => {
+    const radius = Math.hypot(x, y, z);
+    const rho = 2 * nuclearCharge * radius / n;
+    const radial = radialNormalization * Math.exp(-rho / 2) * rho ** l
+      * generalizedLaguerre(radialOrder, 2 * l + 1, rho);
+    const cosine = radius === 0 ? 1 : Math.max(-1, Math.min(1, z / radius));
+    const legendre = associatedLegendre(l, angularOrder, cosine);
+    return radial * radial * angularNormalizationSquared * legendre * legendre;
+  };
 }
 
 /** Real normalized spherical harmonic for the selected signed m. */
@@ -94,16 +166,17 @@ export function hydrogenicProbabilityDensity(n, l, m, x, y, z) {
 // so its sign still identifies phase while its magnitude is now physically meaningful.
 export const hydrogenicWavefunctionSign = hydrogenicWavefunction;
 
-export function createRadialCdf(n, l, steps = 4096) {
-  if (!Number.isInteger(n) || !Number.isInteger(l) || n < 1 || l < 0 || l >= n || steps < 2) {
+export function createRadialCdf(n, l, steps = 4096, nuclearCharge = 1) {
+  if (!Number.isInteger(n) || !Number.isInteger(l) || n < 1 || l < 0 || l >= n
+      || !Number.isInteger(nuclearCharge) || nuclearCharge < 1 || steps < 2) {
     throw new RangeError('Expected n ≥ 1, 0 ≤ l < n, and at least two radial steps');
   }
-  const maxRadiusA0 = 12 * n * n;
+  const maxRadiusA0 = 12 * n * n / nuclearCharge;
   const step = maxRadiusA0 / steps;
   const cdf = new Float64Array(steps + 1);
-  let previousDensity = hydrogenicRadialDensity(n, l, 0);
+  let previousDensity = hydrogenicRadialDensity(n, l, 0, nuclearCharge);
   for (let i = 1; i <= steps; i += 1) {
-    const density = hydrogenicRadialDensity(n, l, i * step);
+    const density = hydrogenicRadialDensity(n, l, i * step, nuclearCharge);
     cdf[i] = cdf[i - 1] + (previousDensity + density) * step / 2;
     previousDensity = density;
   }
