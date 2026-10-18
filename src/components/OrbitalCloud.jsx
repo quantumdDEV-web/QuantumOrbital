@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { BufferAttribute, BufferGeometry, Color } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useOrbital } from '../hooks/useOrbital.js';
-import { hydrogenicWavefunctionSign } from '../physics/hydrogen/orbitalMath.js';
+import { hydrogenicWavefunction, hydrogenicProbabilityDensity } from '../physics/hydrogen/orbitalMath.js';
 import { sampleOrbitalPositions } from '../visualization/particleSampling.js';
 
 const POSITIVE_PHASE = new Color('#2e64e1');
@@ -18,7 +18,7 @@ function densityColor(value, colors) {
 
 function writePhaseColor(colors, pointIndex, x, y, z, n, l, m) {
   const offset = pointIndex * 3;
-  const color = hydrogenicWavefunctionSign(n, l, m, x, y, z) >= 0 ? POSITIVE_PHASE : NEGATIVE_PHASE;
+  const color = hydrogenicWavefunction(n, l, m, x, y, z) >= 0 ? POSITIVE_PHASE : NEGATIVE_PHASE;
   colors[offset] = color.r;
   colors[offset + 1] = color.g;
   colors[offset + 2] = color.b;
@@ -30,9 +30,9 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused =
   const colors = useMemo(() => {
     const result = new Float32Array(positions.length);
     for (let i = 0; i < positions.length; i += 3) {
-      const amplitude = hydrogenicWavefunctionSign(n, l, m, positions[i], positions[i + 1], positions[i + 2]);
+      const density = hydrogenicProbabilityDensity(n, l, m, positions[i], positions[i + 1], positions[i + 2]);
       if (colorMode === 'density') {
-        const color = densityColor(Math.min(1, Math.log1p(amplitude * amplitude * 100) / Math.log(101)), VIRIDIS);
+        const color = densityColor(Math.min(1, Math.log1p(density * 100) / Math.log(101)), VIRIDIS);
         result[i] = color.r; result[i + 1] = color.g; result[i + 2] = color.b;
       } else writePhaseColor(result, i / 3, positions[i], positions[i + 1], positions[i + 2], n, l, m);
     }
@@ -66,8 +66,8 @@ export default function OrbitalCloud({ pointCount, n = 1, l = 0, m = 0, paused =
     for (let point = 0; point < pointCount; point += 1) {
       const offset = point * 3;
       if (colorMode === 'density') {
-        const amplitude = hydrogenicWavefunctionSign(n, l, m, samples[offset], samples[offset + 1], samples[offset + 2]);
-        const color = densityColor(Math.min(1, Math.log1p(amplitude * amplitude * 100) / Math.log(101)), VIRIDIS);
+        const density = hydrogenicProbabilityDensity(n, l, m, samples[offset], samples[offset + 1], samples[offset + 2]);
+        const color = densityColor(Math.min(1, Math.log1p(density * 100) / Math.log(101)), VIRIDIS);
         animatedColors[offset] = color.r; animatedColors[offset + 1] = color.g; animatedColors[offset + 2] = color.b;
       } else writePhaseColor(animatedColors, point, samples[offset], samples[offset + 1], samples[offset + 2], n, l, m);
     }

@@ -4,7 +4,7 @@ import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Too
 import { hydrogenicRadialCurve } from '../physics/hydrogen/orbitalMath.js';
 
 export default function ProbabilityPanel({ radiusA0, n = 1, l = 0 }) {
-  const data = useMemo(() => hydrogenicRadialCurve(n, l, 180), [n, l]);
+  const data = useMemo(() => hydrogenicRadialCurve(n, l, Math.max(180, n * 96)), [n, l]);
   const maxRadius = data[data.length - 1]?.radiusA0 ?? 8;
   const orbitalLabel = `${n}${['s', 'p', 'd', 'f'][l] ?? ''}`;
 
@@ -30,7 +30,7 @@ export default function ProbabilityPanel({ radiusA0, n = 1, l = 0 }) {
             <XAxis dataKey="radiusA0" type="number" domain={[0, maxRadius]} ticks={[0, maxRadius / 4, maxRadius / 2, maxRadius * 3 / 4, maxRadius]} stroke="#576575" tickLine={false} axisLine={false} tick={{ fill: '#8290a0', fontSize: 10 }}/>
             <YAxis stroke="#576575" tickLine={false} axisLine={false} tick={{ fill: '#8290a0', fontSize: 10 }}/>
             <Tooltip contentStyle={{ background: '#111923', border: '1px solid #283747', borderRadius: 8, color: '#eaf2f8' }} formatter={value => [Number(value).toFixed(4), 'probability / a₀']} labelFormatter={value => `${Number(value).toFixed(2)} a₀`}/>
-            <Area type="monotone" dataKey="probabilityPerA0" stroke="#65d1f1" strokeWidth={2} fill="url(#radialFill)"/>
+            <Area type="linear" dataKey="probabilityPerA0" stroke="#65d1f1" strokeWidth={1.5} fill="url(#radialFill)"/>
             <ReferenceLine x={radiusA0} stroke="#b7d98e" strokeDasharray="3 4"/>
           </AreaChart>
         </ResponsiveContainer>

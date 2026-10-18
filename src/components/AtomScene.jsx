@@ -1,28 +1,58 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { AxesHelper, BufferAttribute, BufferGeometry, Color } from 'three';
+import { AxesHelper, BufferAttribute, Color, DoubleSide, OrthographicCamera, PerspectiveCamera, PlaneGeometry } from 'three';
 import { OrbitControls as ThreeOrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Camera, Pause, Play, RotateCcw } from 'lucide-react';
+import { hydrogenicProbabilityDensity } from '../physics/hydrogen/orbitalMath.js';
 import OrbitalCloud from './OrbitalCloud.jsx';
 import Nucleus from './Nucleus.jsx';
 
-function CameraControls({ n, view }) {
-  const { camera, gl } = useThree();
+function fittedDistance(camera, extent, aspect) {
+  if (!camera.isPerspectiveCamera) return extent * 2.4;
+  const verticalFov = camera.fov * Math.PI / 180;
+  const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect);
+  return extent / Math.sin(Math.min(verticalFov, horizontalFov) / 2) * 0.92;
+}
+
+function CameraControls({ n, view, orthographic }) {
+  const { camera, gl, size, set } = useThree();
   const controls = useMemo(() => new ThreeOrbitControls(camera, gl.domElement), [camera, gl]);
   const transition = useRef(null);
 
   useEffect(() => () => controls.dispose(), [controls]);
   useEffect(() => {
-    camera.position.set(14 * n * n, 10.5 * n * n, 16 * n * n);
-    camera.far = 700 * n * n;
+    if (camera.isOrthographicCamera === orthographic) return;
+    const projection = orthographic
+      ? new OrthographicCamera(-size.width / 2, size.width / 2, size.height / 2, -size.height / 2, camera.near, camera.far)
+      : new PerspectiveCamera(42, size.width / size.height, camera.near, camera.far);
+    projection.position.copy(camera.position);
+    projection.quaternion.copy(camera.quaternion);
+    projection.up.copy(camera.up);
+    if (orthographic) projection.zoom = Math.min(size.width, size.height) / (12 * n * n * 2.2);
+    projection.updateProjectionMatrix();
+    set({ camera: projection });
+  }, [camera, orthographic, n, set, size.height, size.width]);
+  useEffect(() => {
+    if (camera.isOrthographicCamera) {
+      camera.left = -size.width / 2; camera.right = size.width / 2;
+      camera.top = size.height / 2; camera.bottom = -size.height / 2;
+    } else camera.aspect = size.width / size.height;
+    const extent = 12 * n * n;
+    const distance = fittedDistance(camera, extent, size.width / size.height);
+    camera.position.set(distance * 0.62, distance * 0.45, distance * 0.70);
+    if (camera.isOrthographicCamera) camera.zoom = Math.min(size.width, size.height) / (extent * 2.2);
+    camera.near = Math.max(0.01, distance / 1000);
+    camera.far = distance + extent * 6;
     camera.updateProjectionMatrix();
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.minDistance = 3;
-    controls.maxDistance = 600 * n * n;
+    controls.minDistance = Math.max(0.15, extent * 0.08);
+    controls.maxDistance = extent * 10;
+    controls.minZoom = Math.min(size.width, size.height) / (extent * 6);
+    controls.maxZoom = Math.min(size.width, size.height) / (extent * 0.55);
     controls.update();
-  }, [camera, controls, n]);
+  }, [camera, controls, n, size.height, size.width]);
 
   useEffect(() => {
     if (!view.axis) return;
@@ -34,10 +64,16 @@ function CameraControls({ n, view }) {
       destination.set(0, distance, 0);
       up.set(0, 0, 1);
     } else if (view.axis === 'z') destination.set(0, 0, distance);
-    else destination.set(14 * n * n, 10.5 * n * n, 16 * n * n);
+    else {
+      const extent = 12 * n * n;
+      const distance = fittedDistance(camera, extent, size.width / size.height);
+      destination.set(distance * 0.62, distance * 0.45, distance * 0.70);
+    }
     if (view.axis !== 'y') up.set(0, 1, 0);
     transition.current = {
       elapsed: 0,
+      fromZoom: camera.zoom,
+      toZoom: orthographic && view.axis === 'reset' ? Math.min(size.width, size.height) / (12 * n * n * 2.2) : camera.zoom,
       fromPosition: camera.position.clone(),
       toPosition: destination,
       fromUp: camera.up.clone(),
@@ -56,6 +92,8 @@ function CameraControls({ n, view }) {
       camera.position.lerpVectors(current.fromPosition, current.toPosition, eased);
       camera.up.lerpVectors(current.fromUp, current.toUp, eased);
       controls.target.lerpVectors(current.fromTarget, current.toTarget, eased);
+      camera.zoom = current.fromZoom + (current.toZoom - current.fromZoom) * eased;
+      camera.updateProjectionMatrix();
       if (progress >= 1) transition.current = null;
     }
     controls.update();
@@ -82,7 +120,9 @@ function ReferenceFrame() {
 
   useFrame(() => {
     const depth = 5;
-    const viewHeight = 2 * depth * Math.tan((camera.fov * Math.PI) / 360);
+    const viewHeight = camera.isPerspectiveCamera
+      ? 2 * depth * Math.tan((camera.fov * Math.PI) / 360)
+      : size.height / camera.zoom;
     axes.position.set(-viewHeight * size.width / size.height / 2 + 0.35, -viewHeight / 2 + 0.35, -depth);
     axes.quaternion.copy(camera.quaternion).invert();
   });
@@ -90,36 +130,37 @@ function ReferenceFrame() {
   return null;
 }
 
-const slicePalette = ['#080b2a', '#273c8c', '#287b8b', '#65b86e', '#f4d35e', '#f7f7dc'].map(color => new Color(color));
+const slicePalette = ['#101b3a', '#294a8a', '#218f9a', '#65b86e', '#f4d35e', '#fff3c4'].map(color => new Color(color));
 const sliceColor = new Color();
 function SliceSection({ n, l, m, offset }) {
   const geometry = useMemo(() => {
-    const divisions = 48, extent = Math.max(5, 5 * n * n);
-    const positions = new Float32Array((divisions + 1) ** 2 * 3), density = new Float32Array((divisions + 1) ** 2);
+    const divisions = 72, extent = 12 * n * n;
+    const result = new PlaneGeometry(extent * 2, extent * 2, divisions, divisions);
+    const positions = result.getAttribute('position'), density = new Float32Array(positions.count);
     let maximum = 0;
-    for (let row = 0; row <= divisions; row += 1) for (let column = 0; column <= divisions; column += 1) {
-      const index = row * (divisions + 1) + column, x = (column / divisions * 2 - 1) * extent, y = (row / divisions * 2 - 1) * extent;
-      positions[index * 3] = x; positions[index * 3 + 1] = y;
-      const amplitude = hydrogenicWavefunctionSign(n, l, m, x, y, offset);
-      density[index] = amplitude * amplitude; maximum = Math.max(maximum, density[index]);
+    for (let index = 0; index < positions.count; index += 1) {
+      const x = positions.getX(index), y = positions.getY(index);
+      density[index] = hydrogenicProbabilityDensity(n, l, m, x, y, offset);
+      maximum = Math.max(maximum, density[index]);
     }
-    const colors = new Float32Array(positions.length);
-    for (let index = 0; index < density.length; index += 1) {
-      const scaled = Math.sqrt(maximum ? density[index] / maximum : 0) * (slicePalette.length - 1);
+    const colors = new Float32Array(positions.count * 4);
+    for (let index = 0; index < positions.count; index += 1) {
+      const level = maximum ? density[index] / maximum : 0;
+      const scaled = Math.sqrt(level) * (slicePalette.length - 1);
       const segment = Math.min(slicePalette.length - 2, Math.floor(scaled));
       const color = sliceColor.copy(slicePalette[segment]).lerp(slicePalette[segment + 1], scaled - segment);
-      colors.set([color.r, color.g, color.b], index * 3);
+      colors.set([color.r, color.g, color.b, Math.pow(level, 0.35)], index * 4);
     }
-    const result = new BufferGeometry();
-    result.setAttribute('position', new BufferAttribute(positions, 3)); result.setAttribute('color', new BufferAttribute(colors, 3));
+    result.setAttribute('color', new BufferAttribute(colors, 4));
     return result;
   }, [n, l, m, offset]);
   useEffect(() => () => geometry.dispose(), [geometry]);
-  return <points geometry={geometry} renderOrder={2}><pointsMaterial vertexColors size={0.16} transparent opacity={0.92} sizeAttenuation depthWrite={false}/></points>;
+  return <mesh geometry={geometry} position={[0, 0, offset]} renderOrder={2}><meshBasicMaterial vertexColors transparent opacity={0.78} side={DoubleSide} depthWrite={false}/></mesh>;
 }
 
 export default function AtomScene({ pointCount, n, l, m, element, slice = false, sliceOffset = 0, colorMode = 'phase', onSliceToggle = () => {}, onColorModeChange = () => {} }) {
   const [paused, setPaused] = useState(false);
+  const [orthographic, setOrthographic] = useState(false);
   const [view, setView] = useState({ axis: '', request: 0 });
   const [canvasElement, setCanvasElement] = useState(null);
   const orbitalLabel = `${n}${['s', 'p', 'd', 'f'][l] || ''}${l > 0 ? m : ''}`;
@@ -136,7 +177,7 @@ export default function AtomScene({ pointCount, n, l, m, element, slice = false,
   };
 
   return <div className="scene-canvas">
-    <Canvas camera={{ position: [14, 10.5, 16], fov: 42 }} dpr={[1, 1.6]} gl={{ preserveDrawingBuffer: true }} onCreated={({ gl }) => setCanvasElement(gl.domElement)}>
+    <Canvas camera={{ position: [14, 10.5, 16], fov: 42 }} dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }} onCreated={({ gl }) => setCanvasElement(gl.domElement)}>
       <color attach="background" args={['#05080d']}/>
       <ambientLight intensity={0.8}/>
       <directionalLight position={[4, 6, 5]} intensity={1.4}/>
@@ -146,11 +187,12 @@ export default function AtomScene({ pointCount, n, l, m, element, slice = false,
         <Nucleus/>
         <ReferenceFrame/>
       </Suspense>
-      <CameraControls n={n} view={view}/>
+      <CameraControls n={n} view={view} orthographic={orthographic}/>
     </Canvas>
-    <div className="scene-visual-legend">{colorMode === 'phase' ? <><span className="legend-dot positive-phase-dot"/>+ phase <span className="legend-dot negative-phase-dot"/>− phase</> : <><span className="density-key"/>|ψ|² density</>}{slice && <> <span className="legend-separator">/</span> z = {sliceOffset.toFixed(1)} a₀</>}</div>
+    <div className="scene-visual-legend">{colorMode === 'phase' ? <><span className="legend-dot positive-phase-dot"/>+ phase <span className="legend-dot negative-phase-dot"/>− phase</> : <><span className="density-key"/>log |ψ|² · a₀⁻³</>}{slice && <> <span className="legend-separator">/</span> XY slice z = {sliceOffset.toFixed(1)} a₀ · relative scale</>}</div>
     <div className="scene-actions" role="group" aria-label="3D visualization controls">
       {['x', 'y', 'z'].map(axis => <button key={axis} type="button" className={view.axis === axis ? 'active' : ''} aria-pressed={view.axis === axis} onClick={() => setView(current => ({ axis, request: current.request + 1 }))} aria-label={`View along ${axis.toUpperCase()} axis`}>{axis.toUpperCase()}</button>)}
+      <button type="button" className={orthographic ? 'active' : ''} aria-pressed={orthographic} onClick={() => setOrthographic(value => !value)}>{orthographic ? 'Ortho' : 'Persp'}</button>
       <button type="button" className={slice ? 'active' : ''} aria-pressed={slice} onClick={onSliceToggle}>Slice</button>
       <button type="button" className={colorMode === 'density' ? 'active' : ''} aria-pressed={colorMode === 'density'} onClick={onColorModeChange}>{colorMode === 'phase' ? 'Phase' : 'Viridis'}</button>
       <button type="button" onClick={() => setView(current => ({ axis: 'reset', request: current.request + 1 }))} aria-label="Reset camera view"><RotateCcw size={13}/></button>
@@ -158,6 +200,6 @@ export default function AtomScene({ pointCount, n, l, m, element, slice = false,
       <button type="button" onClick={savePng} disabled={!canvasElement}><Camera size={13}/>PNG</button>
     </div>
     <div className="scene-caption">{element?.symbol || 'Atom'} first ionization energy: {energyLabel} <span className="caption-separator">·</span> orbital {orbitalLabel} <span className="caption-separator">·</span> radius in a₀</div>
-    <div className="scene-visual-note">Each frame samples the orbital probability density; dots are not electron paths. Colors show opposite wavefunction phases.</div>
+    <div className="scene-visual-note">Samples show probability distribution, not electron paths. Slice colors are normalized within this plane.</div>
   </div>;
 }
