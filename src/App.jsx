@@ -1,22 +1,63 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import OrbitalViewer from './components/OrbitalViewer.jsx';
+import { buildStateGroups } from './physics/states.js';
+import {
+  clampQuantumNumbers, decodeState, encodeState, physicsConfig, sanitizeState,
+} from './state/urlState.js';
 import './styles/orbital.css';
+import './styles/controls.css';
+
+function readInitialHash() {
+  try {
+    return decodeState(window.location.hash);
+  } catch {
+    return { state: sanitizeState({}), camera: null };
+  }
+}
 
 export default function App() {
-  const [state, setState] = useState({ n: 3, l: 2, m: 1, nuclearCharge: 1 });
-  const [exposure, setExposure] = useState(0);
+  const initial = useRef(null);
+  if (initial.current === null) initial.current = readInitialHash();
+  const [state, setState] = useState(initial.current.state);
+  const [camera, setCamera] = useState(initial.current.camera);
+  const initialCamera = initial.current.camera;
 
-  function updateQuantumNumbers(change) {
+  const updateState = useCallback(change => {
     setState(current => {
       const next = { ...current, ...change };
-      if ('n' in change) {
-        next.l = Math.min(current.l, next.n - 1);
-        next.m = Math.max(-next.l, Math.min(next.l, current.m));
+      // Keep (n, l, m) valid when any of them changes, preferring the field the user just edited.
+      if ('n' in change || 'l' in change || 'm' in change) {
+        Object.assign(next, clampQuantumNumbers(next.n, next.l, next.m));
       }
-      if ('l' in change) next.m = Math.max(-next.l, Math.min(next.l, current.m));
-      return next;
+      if (change.second) {
+        next.second = { ...current.second, ...change.second };
+        Object.assign(next.second, clampQuantumNumbers(next.second.n, next.second.l, next.second.m));
+      }
+      return sanitizeState(next);
     });
-  }
+  }, []);
+
+  const handleCameraEnd = useCallback(position => setCamera(position), []);
+
+  useEffect(() => {
+    // Debounced: dragging a slider would otherwise hit browser limits on history updates.
+    const timer = window.setTimeout(() => {
+      try {
+        window.history.replaceState(null, '', `#${encodeState(state, camera)}`);
+      } catch {
+        // History can be unavailable in sandboxed frames; sharing then simply stays off.
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [state, camera]);
+
+  const label = useMemo(() => {
+    try {
+      return buildStateGroups(physicsConfig(state)).label;
+    } catch {
+      return '';
+    }
+  }, [state]);
 
   return <main className="app-shell">
     <header className="app-header">
@@ -25,14 +66,14 @@ export default function App() {
         <div><strong>QuantumOrbital</strong><span>HYDROGENIC ORBITAL EXPLORER</span></div>
       </div>
       <div className="header-model">ANALYTICAL COULOMB EIGENSTATES <span>·</span> ONE ELECTRON</div>
-      <div className="header-state">{state.n}{['s','p','d','f','g','h','i','k'][state.l]}{state.m > 0 ? ` +${state.m}` : ` ${state.m}`}</div>
+      <div className="header-state">{label}</div>
     </header>
 
     <OrbitalViewer
-      {...state}
-      onQuantumNumbersChange={updateQuantumNumbers}
-      exposure={exposure}
-      onExposureChange={setExposure}
+      state={state}
+      onChange={updateState}
+      initialCamera={initialCamera}
+      onCameraEnd={handleCameraEnd}
     />
 
     <footer className="app-footer">
