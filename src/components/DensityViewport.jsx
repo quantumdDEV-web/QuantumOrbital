@@ -21,6 +21,11 @@ export const CAMERA_VIEWS = {
 const FOV = 36;
 const TRANSITION_MS = 450;
 const BEAT_SECONDS = 6;
+// Full quality when still; while the camera moves the view is rendered at a lower
+// resolution with fewer ray steps, then redrawn sharp as soon as motion settles.
+const FULL_STEPS = 160;
+const MOVING_STEPS = 56;
+const MOVING_RESOLUTION = 0.55;
 const RENDER_INDEX = { volume: 0, surface: 1, slice: 2 };
 const AXIS_INDEX = { x: 0, y: 1, z: 2 };
 const ORIGIN = new Vector3();
@@ -75,6 +80,7 @@ function createVolumeMaterial(rocket) {
       uIsoLevel: { value: 1 },
       uSliceAxis: { value: 2 },
       uSlicePos: { value: 0 },
+      uSteps: { value: FULL_STEPS },
     },
     vertexShader: VOLUME_VERTEX_SHADER,
     fragmentShader: VOLUME_FRAGMENT_SHADER,
@@ -151,11 +157,22 @@ export default function DensityViewport({
     if (!canvas || !viewport) return undefined;
     let renderer, camera, scene, volumeGeometry, volumeMaterial, pointsMaterial, controls, animationFrame;
     let live = true;
-    const flags = { autoRotate: false, playing: false, speed: 1, hasSecond: false, phase: 0, transition: null, lastTime: 0 };
+    const flags = {
+      autoRotate: false, playing: false, speed: 1, hasSecond: false, phase: 0, transition: null,
+      lastTime: 0, dragging: false, low: false, height: 1,
+    };
+    const basePixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+    const applyQuality = low => {
+      flags.low = low;
+      renderer.setPixelRatio(low ? Math.max(0.5, basePixelRatio * MOVING_RESOLUTION) : basePixelRatio);
+      volumeMaterial.uniforms.uSteps.value = low ? MOVING_STEPS : FULL_STEPS;
+      pointsMaterial.uniforms.uScale.value = flags.height * renderer.getPixelRatio()
+        / (2 * Math.tan((FOV * Math.PI) / 360));
+    };
     try {
-      renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+      renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
       renderer.outputColorSpace = SRGBColorSpace;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setPixelRatio(basePixelRatio);
       renderer.setClearColor('#03051a');
       renderer.toneMapping = NoToneMapping;
 
@@ -216,6 +233,8 @@ export default function DensityViewport({
         volumeMaterial.uniforms.uPhase.value.set(Math.cos(flags.phase), Math.sin(flags.phase));
 
         const moving = controls.update(flags.autoRotate ? delta : undefined);
+        const wantLow = moving || busy || flags.autoRotate || flags.dragging;
+        if (wantLow !== flags.low) applyQuality(wantLow);
         renderer.render(scene, camera);
         if (moving || busy || flags.autoRotate) invalidate();
         else flags.lastTime = 0;
@@ -228,9 +247,12 @@ export default function DensityViewport({
       controls.addEventListener('change', invalidate);
       controls.addEventListener('start', () => {
         flags.transition = null;
+        flags.dragging = true;
       });
       controls.addEventListener('end', () => {
+        flags.dragging = false;
         callbacksRef.current.onCameraEnd?.(camera.position.toArray());
+        invalidate();
       });
 
       const observer = new ResizeObserver(entries => {
@@ -239,6 +261,7 @@ export default function DensityViewport({
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+        flags.height = height;
         pointsMaterial.uniforms.uScale.value = height * renderer.getPixelRatio()
           / (2 * Math.tan((FOV * Math.PI) / 360));
         invalidate();
