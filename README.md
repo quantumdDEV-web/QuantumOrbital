@@ -8,6 +8,15 @@ The model evaluates normalized hydrogenic radial functions and orthonormal compl
 \]
 on a cubic volume grid. The grid is rendered in WebGL with front-to-back volume integration. Drag to orbit, right-drag to pan, scroll or pinch to zoom, or choose an `XY`, `XZ`, `YZ`, or isometric camera preset.
 
+## Viewer features
+
+- **Orbital types:** complex eigenstates, real orbitals (p_x, d_z², ...), and sp / sp² / sp³ hybrids.
+- **Superposition:** mix any two states; different n beat at the energy difference (animated, time rescaled for display).
+- **Render modes:** volume, isosurface enclosing a chosen share of the probability, slice plane, and Monte Carlo electron positions.
+- **Colouring:** density (Rocket) or phase / sign of the wavefunction.
+- **Camera:** animated presets, auto-rotate, fly inside the cloud, PNG export, and a shareable link that stores the state and camera in the URL hash.
+- **Radial plot:** r²R² with radial nodes marked, plus node counts.
+
 ## Model and display
 
 - `n`, `ℓ`, `m`, and nuclear charge `Z` follow the hydrogenic rules: `n ≥ 1`, `0 ≤ ℓ < n`, and `|m| ≤ ℓ`.
