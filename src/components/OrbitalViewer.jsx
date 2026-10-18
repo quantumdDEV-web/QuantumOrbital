@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BoxGeometry, ClampToEdgeWrapping, Data3DTexture, DataTexture, FrontSide,
   LinearFilter, NearestFilter, RedFormat, RGBAFormat, ShaderMaterial,
-  UnsignedByteType, UnsignedShortType, Mesh, NoToneMapping, PerspectiveCamera,
+  UnsignedByteType, Mesh, NoToneMapping, PerspectiveCamera,
   Scene, SRGBColorSpace, WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -84,10 +84,7 @@ const CAMERA_VIEWS = {
 function densityTexture(volume) {
   const texture = new Data3DTexture(volume.density, volume.size, volume.size, volume.size);
   texture.format = RedFormat;
-  texture.type = UnsignedShortType;
-  // Unsigned-short RED data needs a sized normalized format in WebGL2.
-  // Leaving this as unsized RED can raise INVALID_OPERATION and yield a blank volume.
-  texture.internalFormat = 'R16';
+  texture.type = UnsignedByteType;
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.wrapS = ClampToEdgeWrapping;

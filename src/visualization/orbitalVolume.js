@@ -39,9 +39,12 @@ export function buildOrbitalVolume({ n, l, m, nuclearCharge = 1, size = 80, exte
   const lowerIndex = Math.floor(quantilePosition);
   const fraction = quantilePosition - lowerIndex;
   const vmax = ordered[lowerIndex] * (1 - fraction) + ordered[lowerIndex + 1] * fraction || maximum;
-  const density = new Uint16Array(samples);
+  // Store a normalized 8-bit field: R8 is filterable in WebGL2 on the broadest
+  // range of devices. Unsized RED + UNSIGNED_SHORT (and R16 on some WebGL2
+  // implementations) can fail the 3D upload and leave a blank canvas.
+  const density = new Uint8Array(samples);
   for (let index = 0; index < samples; index += 1) {
-    density[index] = Math.round(Math.min(1, field[index] / vmax) * 65535);
+    density[index] = Math.round(Math.min(1, field[index] / vmax) * 255);
   }
 
   const voxelWidth = 2 * radius / size;
