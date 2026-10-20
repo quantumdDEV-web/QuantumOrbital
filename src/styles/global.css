@@ -1,15 +1,15 @@
 :root {
   font-family: Arial, Helvetica, sans-serif;
   color: #e1d8dc;
-  background: #03051a;
+  background: #000000;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   font-smooth: always;
   font-weight: 400;
   color-scheme: dark;
-  --background: #03051a;
-  --panel: #080b1d;
-  --line: #252239;
+  --background: #000000;
+  --panel: #050505;
+  --line: #1c1c1c;
   --muted: #aaa3b6;
   --text: #e1d8dc;
   --dim: #716d81;
@@ -17,8 +17,13 @@
 }
 
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 html, body, #root { min-width: 320px; min-height: 100%; margin: 0; }
 body { background: var(--background); font-size: 13px; }
 button, select, input { font: inherit; }
 button, select { color: inherit; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #e7aaa0; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

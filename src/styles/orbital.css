@@ -9,7 +9,7 @@
 .header-state { min-width: 72px; color: #e2c2b8; text-align: right; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; }
 
 .orbital-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 252px; gap: 18px; padding-top: 18px; }
-.orbital-stage { min-width: 0; border: 1px solid var(--line); background: #03051a; }
+.orbital-stage { min-width: 0; border: 1px solid var(--line); background: #000000; }
 .stage-toolbar { height: 43px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px; border-bottom: 1px solid var(--line); }
 .stage-readout { display: flex; align-items: center; gap: 8px; color: #c9c0cc; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .45px; white-space: nowrap; }
 .stage-readout b { margin-left: 7px; color: var(--dim); font-size: 8px; font-weight: 400; }
@@ -39,7 +39,7 @@
 .controls-header h1 { margin: 5px 0 0; color: #e2d8dd; font-size: 16px; font-weight: 500; letter-spacing: -.3px; }
 .field-control { display: block; margin: 0 0 12px; }
 .field-control > span { display: block; margin-bottom: 6px; color: #b7aebd; font-size: 10px; }
-.field-control select { width: 100%; height: 31px; padding: 0 8px; border: 1px solid #302a43; border-radius: 0; background: #090b1b; color: #e2dbe0; font-size: 10px; }
+.field-control select { width: 100%; height: 31px; padding: 0 8px; border: 1px solid #252525; border-radius: 0; background: #080808; color: #e2dbe0; font-size: 10px; }
 .control-rule { height: 1px; margin: 15px 0 13px; background: var(--line); }
 .range-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; color: #c2b9c5; font-size: 10px; }
 .range-label strong, .range-ends { color: #d2b2ad; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }

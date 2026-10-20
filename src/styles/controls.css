@@ -1,11 +1,11 @@
 /* Controls added for render modes, orbital types, superposition and camera tools. */
 .control-group { margin: 0 0 12px; }
 .control-label { display: block; margin-bottom: 6px; color: #b7aebd; font-size: 10px; }
-.seg { display: flex; border: 1px solid #302a43; background: #090b1b; }
-.seg button { flex: 1; min-width: 0; height: 28px; padding: 0 2px; border: 0; border-right: 1px solid #302a43; background: transparent; color: #8e889c; cursor: pointer; font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .3px; text-transform: uppercase; }
+.seg { display: flex; border: 1px solid #252525; background: #080808; }
+.seg button { flex: 1; min-width: 0; height: 28px; padding: 0 2px; border: 0; border-right: 1px solid #252525; background: transparent; color: #8e889c; cursor: pointer; font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .3px; text-transform: uppercase; }
 .seg button:last-child { border-right: 0; }
 .seg button:hover:not(:disabled) { color: #e4dbe0; }
-.seg button[aria-pressed="true"] { background: #17142a; color: #f0d4ca; box-shadow: inset 0 -2px 0 #d88a8d; }
+.seg button[aria-pressed="true"] { background: #141414; color: #f0d4ca; box-shadow: inset 0 -2px 0 #d88a8d; }
 .seg button:disabled { opacity: .4; cursor: default; }
 
 .field-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
