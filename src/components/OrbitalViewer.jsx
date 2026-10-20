@@ -14,6 +14,33 @@ const MODE_TITLES = {
   points: 'ELECTRON POSITION SAMPLES',
 };
 
+const SHAPE_PREVIEWS = [
+  {
+    image: 'orbital-1s-slice.png',
+    title: '1s · spherical',
+    description: 'Smooth density around the nucleus, with no angular nodes.',
+    alt: 'Calculated 1s probability-density cross-section with a bright center and spherical symmetry',
+  },
+  {
+    image: 'orbital-2p-slice.png',
+    title: '2p · two lobes',
+    description: 'Two regions of high density separated by an angular node.',
+    alt: 'Calculated 2p probability-density cross-section with two lobes',
+  },
+  {
+    image: 'orbital-3d-slice.png',
+    title: '3d · four regions',
+    description: 'A plane through a 3d state reveals four bright regions.',
+    alt: 'Calculated 3d probability-density cross-section with four bright regions',
+  },
+  {
+    image: 'orbital-4f-slice.png',
+    title: '4f · angular nodes',
+    description: 'Higher angular momentum creates more intricate nodal patterns.',
+    alt: 'Calculated 4f probability-density cross-section with multiple angular regions',
+  },
+];
+
 function makeColorMapLegend() {
   return [0, 42, 85, 128, 170, 213, 255].map(index => ROCKET_COLORS[index]);
 }
@@ -222,6 +249,36 @@ export default function OrbitalViewer({ state, onChange, initialCamera, onCamera
         <div className="volume-help">DRAG ROTATE <span>·</span> RIGHT DRAG PAN <span>·</span> SCROLL ZOOM <span>·</span> ZOOM IN TO ENTER</div>
       </div>
       <DensityLegend color={state.color} kind={kind} legend={legend}/>
+      <section className="shape-gallery" aria-labelledby="shape-gallery-title">
+        <div className="shape-gallery-heading">
+          <div className="eyebrow">CALCULATED HYDROGENIC DENSITY</div>
+          <h2 id="shape-gallery-title">A guide to orbital shapes</h2>
+          <p>From simple spherical states to intricate nodal patterns.</p>
+        </div>
+        <div className="shape-gallery-grid">
+          {SHAPE_PREVIEWS.map(({ image, title, description, alt }) => (
+            <figure className="shape-card" key={image}>
+              <img
+                src={`${import.meta.env.BASE_URL}${image}`}
+                alt={alt}
+                width="360"
+                height="360"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>
+                <strong>{title}</strong>
+                <span>{description}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        <p className="shape-gallery-note">
+          Each image is a y = 0 cross-section of the analytical probability density, scaled using the sampled 3D grid.
+          Brightness shows density; the full orbital is three-dimensional. Choose n, ℓ, m, and orbital type in the controls
+          to explore other states, orientations, hybrids, and superpositions.
+        </p>
+      </section>
     </div>
 
     <aside className="orbital-controls">

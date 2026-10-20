@@ -77,6 +77,10 @@ function renderSlice({ n, l, m, filename }) {
   writeFileSync(new URL(`../public/${filename}`, import.meta.url), png(pixels));
 }
 
-renderSlice({ n: 1, l: 0, m: 0, filename: 'orbital-1s-slice.png' });
-renderSlice({ n: 3, l: 2, m: 1, filename: 'orbital-3d-slice.png' });
+[
+  { n: 1, l: 0, m: 0, filename: 'orbital-1s-slice.png' },
+  { n: 2, l: 1, m: 0, filename: 'orbital-2p-slice.png' },
+  { n: 3, l: 2, m: 1, filename: 'orbital-3d-slice.png' },
+  { n: 4, l: 3, m: 0, filename: 'orbital-4f-slice.png' },
+].forEach(renderSlice);
 console.log('Generated exact hydrogenic y=0 slices with the project Rocket colormap.');

@@ -8,17 +8,21 @@ QuantumOrbital calculates hydrogenic wavefunctions and turns their probability d
 
 ## See the calculated orbitals
 
-These images are generated from QuantumOrbital's analytical wavefunction code and sampled 3D density grid. Each image shows the exact `y = 0` cross-section, colored with the project's Seaborn Rocket lookup table and normalized to the sampled 3D field's 99.9th percentile. They are calculated previews, not photographs or measured atomic images.
+These images are generated from QuantumOrbital's analytical wavefunction code and sampled 3D density grid. Each image shows the exact `y = 0` cross-section, colored with the project's Seaborn Rocket lookup table and normalized to the sampled 3D field's 99.9th percentile. They are calculated previews, not photographs or measured atomic images. The website shows the same representative `s`, `p`, `d`, and `f` examples below the interactive camera.
 
 <p align="center">
   <img src="public/orbital-1s-slice.png" alt="Calculated x-z probability-density slice for hydrogen 1s" width="360" />
+  <img src="public/orbital-2p-slice.png" alt="Calculated x-z probability-density slice for hydrogen 2p, m equals 0" width="360" />
   <img src="public/orbital-3d-slice.png" alt="Calculated x-z probability-density slice for hydrogen 3d, m equals 1" width="360" />
+  <img src="public/orbital-4f-slice.png" alt="Calculated x-z probability-density slice for hydrogen 4f, m equals 0" width="360" />
 </p>
 
 | State | Quantum numbers | What the slice shows |
 | --- | --- | --- |
 | Hydrogen 1s | `n = 1, ℓ = 0, m = 0` | Spherically symmetric density; the plane appears as a central peak. |
+| Hydrogen 2p | `n = 2, ℓ = 1, m = 0` | Two lobes separated by an angular node. |
 | Hydrogen 3d | `n = 3, ℓ = 2, m = 1` | Four bright pockets in this plane slice; the full 3D density forms two toroidal lobes above and below the equatorial node. |
+| Hydrogen 4f | `n = 4, ℓ = 3, m = 0` | A higher-angular-momentum example with several regions separated by angular nodes. |
 
 The viewer samples the full 3D field; these 2D previews are just sections through that calculated volume.
 

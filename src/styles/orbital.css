@@ -33,6 +33,17 @@
 .rocket-ramp i { display: block; flex: 1; }
 .legend-name { padding-left: 4px; color: #b8a5ab; }
 
+.shape-gallery { padding: 20px 16px 18px; border-top: 1px solid var(--line); }
+.shape-gallery-heading h2 { margin: 5px 0 0; color: #e2d8dd; font-size: 16px; font-weight: 500; }
+.shape-gallery-heading p { margin: 6px 0 14px; color: #9a93a2; font-size: 10px; }
+.shape-gallery-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.shape-card { min-width: 0; margin: 0; overflow: hidden; border: 1px solid var(--line); background: #050505; }
+.shape-card img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: #03051a; }
+.shape-card figcaption { display: grid; gap: 5px; padding: 9px; }
+.shape-card figcaption strong { color: #e2d8dd; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.shape-card figcaption span { color: #9a93a2; font-size: 9px; line-height: 1.45; }
+.shape-gallery-note { margin: 12px 0 0; color: #aaa3b6; font-size: 9px; line-height: 1.6; }
+
 .orbital-controls { align-self: start; padding: 14px 14px 12px; border: 1px solid var(--line); background: var(--panel); }
 .controls-header { margin-bottom: 17px; }
 .eyebrow { color: #817a8d; font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .7px; }
@@ -84,6 +95,9 @@ input[type=range]::-moz-range-thumb { width: 11px; height: 11px; border: 1px sol
   .volume-help { right: 8px; }
   .density-legend { min-height: 35px; gap: 6px; padding: 0 8px; }
   .legend-label, .legend-name { font-size: 6px; }
+  .shape-gallery { padding: 16px 9px 13px; }
+  .shape-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .shape-card figcaption { padding: 8px; }
   .orbital-controls { order: 1; width: 100%; padding: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
   .controls-header { grid-column: 1 / -1; margin-bottom: 10px; }
   .field-control { margin-bottom: 9px; }
