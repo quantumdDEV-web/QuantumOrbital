@@ -24,8 +24,8 @@ const BEAT_SECONDS = 6;
 // Full quality when still; while the camera moves the view is rendered at a lower
 // resolution with fewer ray steps, then redrawn sharp as soon as motion settles.
 const FULL_STEPS = 160;
-const MOVING_STEPS = 56;
-const MOVING_RESOLUTION = 0.55;
+const MOVING_STEPS = 40;
+const MOVING_RESOLUTION = 0.4;
 const RENDER_INDEX = { volume: 0, surface: 1, slice: 2 };
 const AXIS_INDEX = { x: 0, y: 1, z: 2 };
 const ORIGIN = new Vector3();
@@ -195,7 +195,7 @@ export default function DensityViewport({
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
-      controls.dampingFactor = 0.09;
+      controls.dampingFactor = 0.14;
       controls.screenSpacePanning = true;
       // Close enough to fly inside the cloud; the box half-diagonal is about 1.73.
       controls.minDistance = 0.15;
