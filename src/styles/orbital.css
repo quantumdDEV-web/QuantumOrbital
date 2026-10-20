@@ -18,7 +18,7 @@
 .view-controls button { min-width: 32px; height: 26px; padding: 0 6px; border: 1px solid transparent; background: transparent; color: #79758a; cursor: pointer; font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; }
 .view-controls button:hover { color: #e4dbe0; }
 .view-controls button.selected { border-color: #514154; color: #f0d4ca; }
-.volume-stage { position: relative; height: min(76vh, 760px); min-height: 430px; overflow: hidden; background: #03051a; }
+.volume-stage { position: relative; height: min(76vh, 760px); min-height: 430px; overflow: hidden; background: #000000; }
 .volume-canvas { position: absolute; inset: 0; }
 .volume-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 .volume-message { position: absolute; inset: 0; display: grid; place-items: center; color: #b9b0bf; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; pointer-events: none; }

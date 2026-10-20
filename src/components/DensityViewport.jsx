@@ -173,7 +173,7 @@ export default function DensityViewport({
       renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
       renderer.outputColorSpace = SRGBColorSpace;
       renderer.setPixelRatio(basePixelRatio);
-      renderer.setClearColor('#03051a');
+      renderer.setClearColor('#000000');
       renderer.toneMapping = NoToneMapping;
 
       camera = new PerspectiveCamera(FOV, 1, 0.05, 100);
