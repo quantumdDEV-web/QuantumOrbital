@@ -8,6 +8,13 @@ import { HYBRID_TYPES, buildStateGroups, orbitalLetter } from '../physics/states
 import { stateExtent, stateGridSize } from '../visualization/stateVolume.js';
 import { clampQuantumNumbers, physicsConfig } from '../state/urlState.js';
 
+const SHAPE_PREVIEWS = [
+  ['orbital-1s-slice.png', '1s', 'Spherical, with no angular nodes.', 'Cross-section of a 1s orbital: a bright centre, the same in every direction'],
+  ['orbital-2p-slice.png', '2p', 'Two lobes separated by a node.', 'Cross-section of a 2p orbital with two lobes'],
+  ['orbital-3d-slice.png', '3d', 'Four lobes in a plane through the nucleus.', 'Cross-section of a 3d orbital with four bright regions'],
+  ['orbital-4f-slice.png', '4f', 'More angular nodes, more intricate pattern.', 'Cross-section of a 4f orbital with several lobes'],
+];
+
 const VIEW_LABELS = [['iso', 'Isometric'], ['xy', 'Top'], ['xz', 'Front'], ['yz', 'Side']];
 const KIND_HELP = {
   complex: 'Pure states with a definite m. +m and −m look the same.',
@@ -276,6 +283,17 @@ export default function OrbitalViewer({ state, onChange, initialCamera, onCamera
     <section className="radial" aria-labelledby="radial-heading">
       <h2 id="radial-heading">Radial probability</h2>
       <RadialPlot curves={curves} nuclearCharge={state.nuclearCharge}/>
+    </section>
+
+    <section className="gallery" aria-labelledby="gallery-heading">
+      <h2 id="gallery-heading">A guide to orbital shapes</h2>
+      <div className="gallery-grid">
+        {SHAPE_PREVIEWS.map(([image, title, description, alt]) => <figure key={image}>
+          <img src={`${import.meta.env.BASE_URL}${image}`} alt={alt} width="360" height="360" loading="lazy" decoding="async"/>
+          <figcaption><strong>{title}</strong> {description}</figcaption>
+        </figure>)}
+      </div>
+      <p className="diagram-note">Each image is the y = 0 cross-section of the calculated probability density. Brightness shows density; the real orbital is three-dimensional.</p>
     </section>
 
     <aside className="panel" aria-label="Orbital settings">

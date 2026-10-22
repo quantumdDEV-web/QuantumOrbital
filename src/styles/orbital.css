@@ -9,15 +9,16 @@
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  grid-template-areas: "stage panel" "energy panel" "radial panel";
+  grid-template-areas: "stage panel" "energy panel" "radial panel" "gallery panel";
   gap: 34px 40px;
   align-items: start;
 }
 .stage { grid-area: stage; min-width: 0; }
 .energy { grid-area: energy; min-width: 0; }
 .radial { grid-area: radial; min-width: 0; }
+.gallery { grid-area: gallery; min-width: 0; }
 .workspace h2, .panel h2 { font: 400 21px/1.25 var(--serif); }
-.energy h2, .radial h2 { margin-bottom: 12px; }
+.energy h2, .radial h2, .gallery h2 { margin-bottom: 12px; }
 
 /* Viewer */
 .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; margin-bottom: 10px; }
@@ -111,6 +112,13 @@ input[type=range] { display: block; width: 100%; margin: 0; accent-color: var(--
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
 .readout-note { margin-top: 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
+/* Shape gallery */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+.gallery figure { margin: 0; }
+.gallery img { display: block; width: 100%; height: auto; background: #000; }
+.gallery figcaption { margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.gallery figcaption strong { color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: 17px; margin-right: 4px; }
+
 /* Radial plot */
 .radial-plot svg { max-width: 600px; }
 .radial-plot figcaption { margin-top: 8px; max-width: 60ch; color: var(--muted); font-size: 14px; }
@@ -119,7 +127,7 @@ input[type=range] { display: block; width: 100%; margin: 0; accent-color: var(--
 .key-line.dashed { border-top-style: dashed; }
 
 @media (max-width: 1020px) {
-  .workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "panel" "energy" "radial"; }
+  .workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "panel" "energy" "radial" "gallery"; }
   .panel { position: static; max-height: none; overflow: visible; padding-right: 0; max-width: 520px; }
 }
 @media (max-width: 720px) {
