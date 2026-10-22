@@ -99,7 +99,8 @@ input[type=range] { display: block; width: 100%; margin: 0; accent-color: var(--
 .energy-levels .hit-line { stroke: transparent; stroke-width: 11; pointer-events: stroke; }
 .level-hit { fill: transparent; }
 .level, .transition { cursor: pointer; }
-.level:focus-visible { outline: none; }
+.level:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.transition:focus-visible { outline: none; }
 
 .diagram-note { margin-top: 8px; max-width: 62ch; color: var(--muted); font-size: 13px; }
 .transition-readout { min-height: 220px; }
