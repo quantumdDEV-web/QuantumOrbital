@@ -1,16 +1,16 @@
 :root {
-  --page: #f1f2f4;
-  --ink: #1c1f24;
-  --muted: #5a616b;
-  --rule: #cdd1d8;
-  --rule-soft: #dfe2e7;
-  --field: #ffffff;
+  --page: #08090b;
+  --ink: #e8eaf0;
+  --muted: #a0a6b2;
+  --rule: #343943;
+  --rule-soft: #242831;
+  --field: #111318;
   --accent: #2347b8;
   --accent-ink: #ffffff;
   --second: #c2570c;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --serif: Georgia, "Times New Roman", serif;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
