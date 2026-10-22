@@ -13,10 +13,10 @@ const TOP = 40;
 const SPAN = 280;
 const BAR_HALF = 31;
 const MIN_LABEL_GAP = 14;
-const IDLE_LINE = '#9aa1ab';
-const LEVEL_COLOR = '#5f6670';
-const FIRST_COLOR = '#2347b8';
-const SECOND_COLOR = '#c2570c';
+const IDLE_LINE = '#6b727c';
+const LEVEL_COLOR = '#8f96a1';
+const FIRST_COLOR = '#5b82f0';
+const SECOND_COLOR = '#f0883a';
 
 // Real energies go as 1/n², which squeezes every level above n = 2 into a few pixels.
 // Spacing here follows 1/n instead; the labels still give the true energies.
@@ -164,8 +164,8 @@ export default function EnergyLevels({
           onFocus={() => setHovered(key)}
           onBlur={() => setHovered(null)}
         >
-          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={active ? 2.6 : info.color ? 1.5 : 1} opacity={active ? 1 : dim ? 0.18 : info.color ? 0.85 : 0.55}/>
-          <polygon points={arrowHead(x1, y1, x2, y2, active ? 7 : 5)} fill={color} opacity={active ? 1 : dim ? 0.18 : info.color ? 0.85 : 0.55}/>
+          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={active ? 2.6 : info.color ? 1.5 : 1} opacity={active ? 1 : dim ? 0.3 : info.color ? 0.85 : 0.55}/>
+          <polygon points={arrowHead(x1, y1, x2, y2, active ? 7 : 5)} fill={color} opacity={active ? 1 : dim ? 0.3 : info.color ? 0.85 : 0.55}/>
           <line x1={x1} y1={y1} x2={x2} y2={y2} className="hit-line"/>
         </g>;
       })}

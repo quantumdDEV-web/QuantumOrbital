@@ -9,7 +9,7 @@ const WIDTH = 520;
 const HEIGHT = 230;
 const PAD = { left: 10, right: 14, top: 14, bottom: 42 };
 const SAMPLES = 200;
-const COLORS = { first: '#2347b8', second: '#c2570c' };
+const COLORS = { first: '#5b82f0', second: '#f0883a' };
 
 function buildCurves(curves, nuclearCharge) {
   const tables = curves.map(curve => createRadialCdf(curve.n, curve.l, 2048, nuclearCharge));

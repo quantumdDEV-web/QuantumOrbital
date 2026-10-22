@@ -1,16 +1,18 @@
 :root {
-  --page: #f1f2f4;
-  --ink: #1c1f24;
-  --muted: #5a616b;
-  --rule: #cdd1d8;
-  --rule-soft: #dfe2e7;
-  --field: #ffffff;
-  --accent: #2347b8;
-  --accent-ink: #ffffff;
-  --second: #c2570c;
+  --page: #050506;
+  --ink: #e6e8ec;
+  --muted: #8f96a1;
+  --rule: #2a2d33;
+  --rule-soft: #1b1d21;
+  --field: #111215;
+  --field-hover: #1b1d22;
+  --border: #3a3e46;
+  --accent: #5b82f0;
+  --accent-ink: #050506;
+  --second: #f0883a;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --serif: Georgia, "Times New Roman", serif;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }

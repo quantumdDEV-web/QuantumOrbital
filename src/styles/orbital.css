@@ -25,13 +25,13 @@
 .button-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .button-row button, .plain {
   height: 32px; padding: 0 12px;
-  border: 1px solid #b4bac4; border-radius: 3px; background: var(--field); font-size: 14px;
+  border: 1px solid var(--border); border-radius: 3px; background: var(--field); font-size: 14px;
 }
-.button-row button:hover, .plain:hover { background: #e7eaef; }
+.button-row button:hover, .plain:hover { background: var(--field-hover); }
 .button-row button[aria-pressed="true"], .plain[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
-.plain[aria-pressed="true"] { background: var(--field); color: var(--ink); border-color: #b4bac4; }
+.plain[aria-pressed="true"] { background: var(--field); color: var(--ink); border-color: var(--border); }
 
-.viewport { position: relative; height: clamp(380px, 68vh, 700px); overflow: hidden; background: #000; }
+.viewport { position: relative; border: 1px solid var(--rule); height: clamp(380px, 68vh, 700px); overflow: hidden; background: #000; }
 .volume-canvas { position: absolute; inset: 0; }
 .viewport canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 .viewport-message { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; color: #cfd3da; text-align: center; pointer-events: none; }
@@ -55,17 +55,17 @@
 .field-hint { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.45; }
 .panel select {
   width: 100%; height: 34px; padding: 0 8px;
-  border: 1px solid #b4bac4; border-radius: 3px; background: var(--field); font-size: 14px;
+  border: 1px solid var(--border); border-radius: 3px; background: var(--field); font-size: 14px;
 }
-.panel select:disabled { color: #8a909a; background: #e9ebef; }
+.panel select:disabled { color: #5d636c; background: var(--rule-soft); }
 .choice { display: flex; }
 .choice button {
   flex: 1; min-width: 0; height: 34px; padding: 0 6px;
-  border: 1px solid #b4bac4; border-left-width: 0; background: var(--field); font-size: 14px;
+  border: 1px solid var(--border); border-left-width: 0; background: var(--field); font-size: 14px;
 }
 .choice button:first-child { border-left-width: 1px; border-radius: 3px 0 0 3px; }
 .choice button:last-child { border-radius: 0 3px 3px 0; }
-.choice button:hover { background: #e7eaef; }
+.choice button:hover { background: var(--field-hover); }
 .choice button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .choice button[aria-pressed="true"] + button { border-left-color: var(--accent); }
 
@@ -93,13 +93,13 @@ input[type=range] { display: block; width: 100%; margin: 0; accent-color: var(--
 .energy-levels svg, .radial-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
 .plot-text { fill: var(--muted); font: 12px var(--sans); }
 .plot-text-strong { fill: var(--ink); font-weight: 600; }
-.limit-line { stroke: #8b929c; stroke-dasharray: 4 4; }
+.limit-line { stroke: #5d636c; stroke-dasharray: 4 4; }
 .guide-line { stroke: var(--rule-soft); }
-.axis-line { stroke: #8b929c; }
+.axis-line { stroke: #5d636c; }
 .energy-levels .hit-line { stroke: transparent; stroke-width: 11; pointer-events: stroke; }
 .level-hit { fill: transparent; }
 .level, .transition { cursor: pointer; }
-.level:focus-visible, .transition:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.level:focus-visible { outline: none; }
 
 .diagram-note { margin-top: 8px; max-width: 62ch; color: var(--muted); font-size: 13px; }
 .transition-readout { min-height: 220px; }
