@@ -43,9 +43,13 @@ The app evaluates the normalized, non-relativistic hydrogenic solution
 
 ## Using the viewer
 
-- Drag to rotate, right-drag to pan, and scroll or pinch to zoom.
-- Use `ISO`, `XY`, `XZ`, and `YZ` for standard camera views; `RESET` restores the initial framing.
-- Select nuclear charge and quantum numbers to explore different hydrogenic states. The exposure slider changes density contrast.
+- Drag to rotate, right-drag to pan, and scroll or pinch to zoom. Zoom all the way in to go inside the cloud.
+- Use the Isometric, Top, Front and Side buttons for standard views.
+- Pick n, ℓ and m, or switch between complex, real and hybrid (sp, sp², sp³) orbitals.
+- Mix in a second state. If the two have different n, the cloud oscillates at the energy difference.
+- Show the orbital as a cloud, a surface, a slice or sampled dots, and colour it by density or by phase.
+- The energy diagram lists levels up to n = 5. Click a level to show it, or click an arrow to set up that transition: the page then shows the photon's energy, wavelength, frequency and the period of the oscillation. Only transitions with ℓ changing by 1 are drawn, since those are the ones that emit a photon directly. Level spacing in the diagram is not to scale.
+- The viewer has a black background. The current state is stored in the URL hash, so a link shares exactly what you see.
 
 ## Run locally
 

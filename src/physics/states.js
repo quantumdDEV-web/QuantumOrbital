@@ -119,7 +119,7 @@ export function realOrbitalName(n, l, m) {
 
 function describe(kind, n, l, m) {
   if (kind === 'real') return realOrbitalName(n, l, m);
-  return `${n}${orbitalLetter(l)} ${m > 0 ? `+${m}` : m}`;
+  return `${n}${orbitalLetter(l)} (m = ${m > 0 ? `+${m}` : m})`;
 }
 
 /**
@@ -138,7 +138,7 @@ export function buildStateGroups(config) {
     const terms = hybridTerms(hybridCoefficients(type, index));
     return {
       groups: [{ n, terms }],
-      label: `${n}${HYBRID_TYPES[type].label} #${index + 1}`,
+      label: `${HYBRID_TYPES[type].label} hybrid, lobe ${index + 1} (n = ${n})`,
       hasSecond: false,
     };
   }
