@@ -20,7 +20,8 @@ export const CAMERA_VIEWS = {
 
 const FOV = 36;
 const TRANSITION_MS = 450;
-const BEAT_SECONDS = 6;
+/** Seconds one full oscillation of a two-energy mixture takes at speed 1. */
+export const BEAT_SECONDS = 6;
 // Full quality when still; while the camera moves the view is rendered at a lower
 // resolution with fewer ray steps, then redrawn sharp as soon as motion settles.
 const FULL_STEPS = 160;
@@ -173,7 +174,7 @@ export default function DensityViewport({
       renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
       renderer.outputColorSpace = SRGBColorSpace;
       renderer.setPixelRatio(basePixelRatio);
-      renderer.setClearColor('#03051a');
+      renderer.setClearColor('#000000');
       renderer.toneMapping = NoToneMapping;
 
       camera = new PerspectiveCamera(FOV, 1, 0.05, 100);

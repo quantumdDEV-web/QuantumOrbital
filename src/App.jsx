@@ -5,7 +5,6 @@ import {
   clampQuantumNumbers, decodeState, encodeState, physicsConfig, sanitizeState,
 } from './state/urlState.js';
 import './styles/orbital.css';
-import './styles/controls.css';
 
 function readInitialHash() {
   try {
@@ -59,26 +58,29 @@ export default function App() {
     }
   }, [state]);
 
-  return <main className="app-shell">
-    <header className="app-header">
-      <div className="brand">
-        <img src={`${import.meta.env.BASE_URL}quantum-orbital-mark.svg`} alt=""/>
-        <div><strong>QuantumOrbital</strong><span>HYDROGENIC ORBITAL EXPLORER</span></div>
+  return <div className="app">
+    <header className="site-header">
+      <div>
+        <h1>Hydrogen orbitals</h1>
+        <p>Where a single electron is likely to be found around a nucleus, calculated exactly instead of approximated.</p>
       </div>
-      <div className="header-model">ANALYTICAL COULOMB EIGENSTATES <span>·</span> ONE ELECTRON</div>
-      <div className="header-state">{label}</div>
+      <p className="current-state" aria-live="polite">{label}</p>
     </header>
 
-    <OrbitalViewer
-      state={state}
-      onChange={updateState}
-      initialCamera={initialCamera}
-      onCameraEnd={handleCameraEnd}
-    />
+    <main>
+      <OrbitalViewer
+        state={state}
+        onChange={updateState}
+        initialCamera={initialCamera}
+        onCameraEnd={handleCameraEnd}
+      />
+    </main>
 
-    <footer className="app-footer">
-      <span>STATIONARY-STATE DENSITY <b>|ψ<sub>nℓm</sub>|²</b></span>
-      <span>Normalized hydrogenic solutions · infinite nuclear mass</span>
+    <footer className="site-footer">
+      <p>
+        Orbitals are exact solutions for one electron and a fixed nucleus. Density colours use Seaborn&rsquo;s rocket map.
+        {' '}<a href="https://github.com/quantumdDEV-web/QuantumOrbital">Source code on GitHub</a>.
+      </p>
     </footer>
-  </main>;
+  </div>;
 }
